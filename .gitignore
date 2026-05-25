@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.env
+*.db
+*.sqlite3
+.mypy_cache/
+.ruff_cache/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.log
+
+# Node
+node_modules/
+dist/
+.env.local
+.env.*.local
+
+# Dados e figuras gerados
+backend/data/fii_insights.db
+backend/data/figures/*.png
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Superpowers brainstorm sessions
+.superpowers/

@@ -1,0 +1,160 @@
+from datetime import date
+from datetime import date as date_type
+from datetime import datetime as dt
+
+import pytest
+from sqlalchemy.exc import IntegrityError
+
+from app.models.cluster import Cluster, FundoCluster
+from app.models.fundo import Fundo
+from app.models.indicador import Indicador
+from app.models.perfil import PerfilInvestidor
+from app.models.scoring import ScoringHistorico
+
+
+def test_criar_fundo_minimo(db_session):
+    fundo = Fundo(ticker="XPLG11")
+    db_session.add(fundo)
+    db_session.commit()
+    db_session.refresh(fundo)
+
+    assert fundo.id is not None
+    assert fundo.ticker == "XPLG11"
+    assert fundo.nome is None
+    assert fundo.created_at is not None
+
+
+def test_criar_fundo_completo(db_session):
+    fundo = Fundo(
+        ticker="HGLG11",
+        nome="CSHG Logística",
+        segmento="Logística",
+        gestora="Credit Suisse Hedging-Griffo",
+        data_ipo=date(2010, 2, 3),
+    )
+    db_session.add(fundo)
+    db_session.commit()
+
+    assert fundo.ticker == "HGLG11"
+    assert fundo.segmento == "Logística"
+    assert fundo.data_ipo == date(2010, 2, 3)
+
+
+def test_ticker_unico(db_session):
+    db_session.add(Fundo(ticker="KNRI11"))
+    db_session.commit()
+
+    db_session.add(Fundo(ticker="KNRI11"))
+    with pytest.raises(IntegrityError):
+        db_session.commit()
+
+
+def test_criar_indicador_completo(db_session):
+    fundo = Fundo(ticker="MXRF11")
+    db_session.add(fundo)
+    db_session.commit()
+
+    ind = Indicador(
+        fundo_id=fundo.id,
+        data_referencia=date_type(2026, 5, 1),
+        dy_atual=0.12,
+        dy_12m=0.11,
+        p_vp=0.98,
+        vacancia_fisica=0.05,
+        vacancia_financeira=0.04,
+        liquidez_diaria=5_000_000.0,
+        volatilidade_12m=0.12,
+        patrimonio_liquido=2_000_000_000.0,
+        num_cotistas=180_000,
+    )
+    db_session.add(ind)
+    db_session.commit()
+    db_session.refresh(ind)
+
+    assert ind.id is not None
+    assert ind.fundo_id == fundo.id
+    assert ind.dy_atual == 0.12
+
+
+def test_criar_indicador_com_nulos(db_session):
+    fundo = Fundo(ticker="BCFF11")
+    db_session.add(fundo)
+    db_session.commit()
+
+    ind = Indicador(fundo_id=fundo.id, data_referencia=date_type(2026, 5, 1))
+    db_session.add(ind)
+    db_session.commit()
+
+    assert ind.dy_atual is None
+    assert ind.p_vp is None
+
+
+def test_criar_scoring_historico(db_session):
+    fundo = Fundo(ticker="BTLG11")
+    db_session.add(fundo)
+    db_session.commit()
+
+    scoring = ScoringHistorico(
+        fundo_id=fundo.id,
+        data_execucao=dt(2026, 5, 22, 10, 0, 0),
+        score=75.5,
+        classificacao="Bom",
+    )
+    db_session.add(scoring)
+    db_session.commit()
+    db_session.refresh(scoring)
+
+    assert scoring.id is not None
+    assert scoring.score == 75.5
+    assert scoring.classificacao == "Bom"
+
+
+def test_criar_cluster_e_associar_fundo(db_session):
+    cluster = Cluster(
+        nome_interpretado="Tijolo Conservador",
+        perfil_risco="conservador",
+        descricao="FIIs de baixa volatilidade com DY moderado",
+        dy_medio=0.10,
+        volatilidade_media=0.08,
+        p_vp_medio=0.95,
+        num_fiis=12,
+    )
+    db_session.add(cluster)
+    db_session.commit()
+
+    fundo = Fundo(ticker="ALZR11")
+    db_session.add(fundo)
+    db_session.commit()
+
+    fc = FundoCluster(
+        fundo_id=fundo.id,
+        cluster_id=cluster.id,
+        data_atribuicao=date_type(2026, 5, 22),
+    )
+    db_session.add(fc)
+    db_session.commit()
+
+    assert fc.fundo_id == fundo.id
+    assert fc.cluster_id == cluster.id
+
+
+def test_criar_perfil_investidor(db_session):
+    perfil = PerfilInvestidor(tipo="moderado")
+    db_session.add(perfil)
+    db_session.commit()
+    db_session.refresh(perfil)
+
+    assert perfil.id is not None
+    assert len(perfil.id) == 36  # UUID string
+    assert perfil.tipo == "moderado"
+    assert perfil.pesos_personalizados is None
+
+
+def test_perfil_com_pesos_customizados(db_session):
+    pesos = {"dy_atual": 0.25, "p_vp": 0.20, "vacancia_fisica": 0.10}
+    perfil = PerfilInvestidor(tipo="arrojado", pesos_personalizados=pesos)
+    db_session.add(perfil)
+    db_session.commit()
+    db_session.refresh(perfil)
+
+    assert perfil.pesos_personalizados["dy_atual"] == 0.25
