@@ -333,7 +333,7 @@ describe("calcularScore", () => {
 
 import { calcularScoreComPesos } from "./scoring";
 import type { PesosIndicadores } from "./scoring";
-import { pesosSchema, somaSchema } from "./pesosSchema";
+import { pesosSchema } from "./pesosSchema";
 
 describe("calcularScoreComPesos", () => {
   const fundoBase: FundoComIndicadores = {
