@@ -1,40 +1,65 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────
+.venv/
 __pycache__/
 *.py[cod]
 *.pyo
-.venv/
-.env
-*.db
-*.sqlite3
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# Type checkers / linters
 .mypy_cache/
 .ruff_cache/
-build/
-*.egg-info/
+.dmypy.json
+dmypy.json
+
+# Tests
 .pytest_cache/
 .coverage
-htmlcov/
 coverage.xml
-*.log
+htmlcov/
 
-# Node
+# ── Node / Frontend ───────────────────────────────────────────────────
 node_modules/
-dist/
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+.next/
+
+# ── Banco de dados ────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+backend/data/fii_insights.db
+
+# ── Variáveis de ambiente ─────────────────────────────────────────────
+.env
 .env.local
 .env.*.local
+frontend/.env.local
 
-# Dados e figuras gerados
-backend/data/fii_insights.db
+# ── Figuras geradas ───────────────────────────────────────────────────
+backend/data/figures/
 backend/data/figures/*.png
 
-# IDEs
-.vscode/
+# ── IDEs / SO ─────────────────────────────────────────────────────────
+.DS_Store
 .idea/
+.vscode/
 *.swp
 *.swo
-
-# OS
-.DS_Store
 Thumbs.db
 
-# Superpowers brainstorm sessions
+# ── Logs ──────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Vite cache ────────────────────────────────────────────────────────
+frontend/.vite/
+
+# ── Superpowers cache ─────────────────────────────────────────────────
 .superpowers/
