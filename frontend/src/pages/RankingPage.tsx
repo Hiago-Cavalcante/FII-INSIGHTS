@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -203,6 +203,11 @@ export function RankingPage() {
     pageSize: 10,
   });
 
+  // Reseta para a primeira página quando o conjunto de fundos muda (ex: troca de perfil)
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [fundos]);
+
   // Memoiza colunas para evitar recriação a cada render
   const memoColumns = useMemo(() => columns, []);
 
@@ -219,10 +224,6 @@ export function RankingPage() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      sorting: [{ id: "score", desc: true }],
-      pagination: { pageIndex: 0, pageSize: 10 },
-    },
   });
 
   // Informações de paginação para exibição
@@ -300,9 +301,7 @@ export function RankingPage() {
                 className="border-gray-200 dark:border-gray-800 hover:bg-transparent"
               >
                 {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as
-                    | { align?: string; hidden?: string }
-                    | undefined;
+                  const meta = header.column.columnDef.meta;
                   const align = meta?.align;
                   const hidden = meta?.hidden;
 
@@ -352,9 +351,7 @@ export function RankingPage() {
                     className="border-gray-100 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta as
-                        | { align?: string; hidden?: string }
-                        | undefined;
+                      const meta = cell.column.columnDef.meta;
                       const align = meta?.align;
                       const hidden = meta?.hidden;
 
