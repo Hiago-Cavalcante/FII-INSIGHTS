@@ -333,6 +333,7 @@ describe("calcularScore", () => {
 
 import { calcularScoreComPesos } from "./scoring";
 import type { PesosIndicadores } from "./scoring";
+import { pesosSchema, somaSchema } from "./pesosSchema";
 
 describe("calcularScoreComPesos", () => {
   const fundoBase: FundoComIndicadores = {
@@ -388,5 +389,36 @@ describe("calcularScoreComPesos", () => {
     const score = calcularScoreComPesos(fundoSemVacancia, pesosIguais);
     expect(score).toBeGreaterThan(0);
     expect(score).toBeLessThanOrEqual(100);
+  });
+});
+
+describe("pesosSchema", () => {
+  const pesosValidos = {
+    dy_atual: 20, dy_12m: 10, p_vp: 15,
+    vacancia_fisica: 10, vacancia_financeira: 10,
+    liquidez: 10, volatilidade: 10,
+    pl: 5, cotistas: 5, segmento: 5,
+  };
+
+  it("aceita pesos válidos que somam 100", () => {
+    expect(pesosSchema.safeParse(pesosValidos).success).toBe(true);
+  });
+
+  it("rejeita quando a soma é diferente de 100", () => {
+    const resultado = pesosSchema.safeParse({ ...pesosValidos, dy_atual: 25 });
+    expect(resultado.success).toBe(false);
+    if (!resultado.success) {
+      expect(resultado.error.issues[0].message).toContain("100");
+    }
+  });
+
+  it("rejeita valores negativos", () => {
+    const resultado = pesosSchema.safeParse({ ...pesosValidos, dy_atual: -5, dy_12m: 25 });
+    expect(resultado.success).toBe(false);
+  });
+
+  it("rejeita valores acima de 60", () => {
+    const resultado = pesosSchema.safeParse({ ...pesosValidos, dy_atual: 65, dy_12m: -25 });
+    expect(resultado.success).toBe(false);
   });
 });
