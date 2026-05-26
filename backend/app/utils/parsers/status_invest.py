@@ -26,7 +26,7 @@ class StatusInvestParser:
     def _h3_por_label(self, soup: BeautifulSoup, label: str) -> Tag | None:
         for h3 in soup.find_all("h3"):
             if re.search(label, h3.get_text(), re.IGNORECASE):
-                return h3  # type: ignore[return-value]
+                return h3
         return None
 
     def _strong_apos_h3(self, soup: BeautifulSoup, label: str) -> str | None:
@@ -53,6 +53,31 @@ class StatusInvestParser:
             strong = parent.find_next("strong")
             if isinstance(strong, Tag):
                 return strong.get_text(strip=True).replace("%", "").strip()
+        return None
+
+    def _valor_por_label_span(self, soup: BeautifulSoup, label: str) -> str | None:
+        """Encontra strong[class=value] dentro do div container do span com o label.
+
+        Estrutura real do Status Invest:
+          <div>  ← container
+            <span class="sub-value ...">
+              <span class="d-lg-none">Label aqui</span>
+            </span>
+            <div><strong class="value">4.763.941,38</strong></div>
+          </div>
+        """
+        for node in soup.find_all(string=re.compile(label, re.IGNORECASE)):
+            tag: Tag | None = node.parent
+            # Sobe até encontrar o primeiro div ancestral (o container)
+            while isinstance(tag, Tag) and tag.name != "div":
+                tag = tag.parent
+            if not isinstance(tag, Tag):
+                continue
+            strong = tag.find("strong", class_="value")
+            if isinstance(strong, Tag):
+                texto = strong.get_text(strip=True)
+                if texto:
+                    return texto
         return None
 
     @staticmethod
@@ -97,16 +122,26 @@ class StatusInvestParser:
         return None
 
     def _extrair_liquidez(self, soup: BeautifulSoup) -> float | None:
-        return self._br_float(self._strong_apos_h3(soup, r"Liq\. méd"))
+        # Tenta via h3 primeiro; fallback para estrutura span.sub-value + strong.value
+        valor = self._strong_apos_h3(soup, r"Liq\. méd")
+        if not valor:
+            valor = self._valor_por_label_span(soup, r"Liq\. méd")
+        return self._br_float(valor)
 
     def _extrair_patrimonio(self, soup: BeautifulSoup) -> float | None:
         texto = self._p_apos_h3(soup, r"^Patrimônio$")
         if texto:
             return self._br_float(texto)
-        return self._br_float(self._strong_apos_h3(soup, r"^Patrimônio$"))
+        valor = self._strong_apos_h3(soup, r"Patrimônio")
+        if not valor:
+            valor = self._valor_por_label_span(soup, r"Patrimônio")
+        return self._br_float(valor)
 
     def _extrair_cotistas(self, soup: BeautifulSoup) -> int | None:
-        return self._br_int(self._strong_apos_h3(soup, r"Nº de Cotistas"))
+        valor = self._strong_apos_h3(soup, r"Nº de Cotistas")
+        if not valor:
+            valor = self._valor_por_label_span(soup, r"Cotistas")
+        return self._br_int(valor)
 
     def _extrair_vacancia_fisica(self, soup: BeautifulSoup) -> float | None:
         return self._br_pct(self._strong_apos_span(soup, r"VACÂNCIA FÍSICA"))

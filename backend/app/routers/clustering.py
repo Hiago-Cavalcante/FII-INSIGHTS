@@ -30,7 +30,7 @@ class ClusteringResultadoOut(BaseModel):
 
 
 @router.get("/clusters", response_model=list[ClusterItemOut])
-def listar_clusters(db: Session = Depends(get_db)):
+def listar_clusters(db: Session = Depends(get_db)) -> list[ClusterItemOut]:
     """Lista os clusters com os tickers de cada um."""
     clusters = db.scalars(select(Cluster)).all()
     resultado = []
@@ -57,7 +57,7 @@ def listar_clusters(db: Session = Depends(get_db)):
 
 
 @router.post("/clustering/executar", response_model=ClusteringResultadoOut)
-def executar_clustering(db: Session = Depends(get_db)):
+def executar_clustering(db: Session = Depends(get_db)) -> ClusteringResultadoOut:
     """Executa K-Means clustering nos FIIs com dados coletados."""
     resultado = ClusteringService(db).executar()
     return ClusteringResultadoOut(**resultado)

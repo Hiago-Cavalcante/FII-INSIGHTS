@@ -1,11 +1,10 @@
-import httpx
-import pytest
-import respx
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
+import respx
+
 from app.repositories.fundo_repository import FundoRepository
-from app.repositories.indicador_repository import IndicadorRepository
 from app.services.coleta_service import ColetaService
 
 _HTML = (Path(__file__).parent / "fixtures" / "hglg11_page.html").read_text()

@@ -17,7 +17,7 @@ class ScoringResultadoOut(BaseModel):
 
 
 @router.post("/scoring/executar", response_model=ScoringResultadoOut)
-def executar_scoring(db: Session = Depends(get_db)):
+def executar_scoring(db: Session = Depends(get_db)) -> ScoringResultadoOut:
     """Executa o scoring multicritério para todos os FIIs com indicadores."""
     resultado = ScoringService(db).executar()
     return ScoringResultadoOut(**resultado)

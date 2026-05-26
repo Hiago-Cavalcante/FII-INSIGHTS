@@ -1,7 +1,8 @@
+from unittest.mock import patch
+
 import httpx
 import pytest
 import respx
-from unittest.mock import patch
 
 from app.utils.http_client import criar_cliente_http, fetch_com_retry
 

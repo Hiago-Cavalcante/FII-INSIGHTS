@@ -28,7 +28,7 @@ def listar_ranking(
     limit: int = Query(50, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-):
+) -> list[RankingItemOut]:
     """Retorna FIIs ordenados por score decrescente (mais recente por fundo)."""
     subq = (
         select(ScoringHistorico.fundo_id, func.max(ScoringHistorico.data_execucao).label("max_dt"))

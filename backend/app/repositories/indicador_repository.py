@@ -37,6 +37,26 @@ class IndicadorRepository:
         )
         return list(self.db.scalars(stmt))
 
+    def upsert(self, fundo_id: int, data_referencia: date, **campos: object) -> Indicador:
+        """Atualiza indicador existente ou cria novo para (fundo_id, data_referencia)."""
+        stmt = select(Indicador).where(
+            Indicador.fundo_id == fundo_id,
+            Indicador.data_referencia == data_referencia,
+        )
+        ind = self.db.scalar(stmt)
+        if ind is None:
+            ind = Indicador(fundo_id=fundo_id, data_referencia=data_referencia)
+            self.db.add(ind)
+        for campo, valor in campos.items():
+            setattr(ind, campo, valor)
+        self.db.commit()
+        self.db.refresh(ind)
+        return ind
+
+    def listar_mais_recentes_todos(self) -> list[Indicador]:
+        """Alias de buscar_todos_mais_recentes."""
+        return self.buscar_todos_mais_recentes()
+
     def buscar_todos_mais_recentes(self) -> list[Indicador]:
         """Retorna o indicador mais recente de cada fundo."""
         subq = (

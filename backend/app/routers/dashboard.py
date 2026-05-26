@@ -23,7 +23,7 @@ class DashboardStatsOut(BaseModel):
 
 
 @router.get("/dashboard/stats", response_model=DashboardStatsOut)
-def dashboard_stats(db: Session = Depends(get_db)):
+def dashboard_stats(db: Session = Depends(get_db)) -> DashboardStatsOut:
     """Estatísticas agregadas para o dashboard."""
     total_fundos = db.scalar(select(func.count()).select_from(Fundo)) or 0
 

@@ -149,11 +149,21 @@ def _calcular_pontuacoes(
     p["dy_12m"] = float(pontuar_dy(ind.dy_12m)) if ind.dy_12m is not None else None
     p["p_vp"] = float(pontuar_pvp(ind.p_vp)) if ind.p_vp is not None else None
     p["vacancia_fisica"] = float(pontuar_vacancia(ind.vacancia_fisica)) if ind.vacancia_fisica is not None else None
-    p["vacancia_financeira"] = float(pontuar_vacancia(ind.vacancia_financeira)) if ind.vacancia_financeira is not None else None
-    p["liquidez_diaria"] = float(pontuar_liquidez(ind.liquidez_diaria)) if ind.liquidez_diaria is not None else None
-    p["volatilidade_12m"] = float(pontuar_volatilidade(ind.volatilidade_12m)) if ind.volatilidade_12m is not None else None
-    p["patrimonio_liquido"] = float(pontuar_percentil(ind.patrimonio_liquido, todos_pl)) if ind.patrimonio_liquido is not None else None
-    p["num_cotistas"] = float(pontuar_percentil(float(ind.num_cotistas), todos_cotistas)) if ind.num_cotistas is not None else None
+    p["vacancia_financeira"] = (
+        float(pontuar_vacancia(ind.vacancia_financeira)) if ind.vacancia_financeira is not None else None
+    )
+    p["liquidez_diaria"] = (
+        float(pontuar_liquidez(ind.liquidez_diaria)) if ind.liquidez_diaria is not None else None
+    )
+    p["volatilidade_12m"] = (
+        float(pontuar_volatilidade(ind.volatilidade_12m)) if ind.volatilidade_12m is not None else None
+    )
+    p["patrimonio_liquido"] = (
+        float(pontuar_percentil(ind.patrimonio_liquido, todos_pl)) if ind.patrimonio_liquido is not None else None
+    )
+    p["num_cotistas"] = (
+        float(pontuar_percentil(float(ind.num_cotistas), todos_cotistas)) if ind.num_cotistas is not None else None
+    )
     p["segmento"] = float(v) if (v := pontuar_segmento(fundo.segmento)) is not None else None
     return p
 
@@ -178,11 +188,12 @@ def calcular_score_com_pesos(
         return 0.0
 
     peso_total = sum(pesos_efetivos.values())
-    score = sum(
-        (pesos_efetivos[k] / peso_total) * (pontuacoes[k] / 5.0) * 100  # type: ignore[operator]
-        for k in pesos_efetivos
-    )
-    return round(score, 2)
+    total = 0.0
+    for k in pesos_efetivos:
+        pts = pontuacoes[k]
+        assert pts is not None  # garantido pela construção de pesos_efetivos
+        total += (pesos_efetivos[k] / peso_total) * (pts / 5.0) * 100
+    return round(total, 2)
 
 
 class ScoringService:

@@ -39,13 +39,13 @@ class FundoDetalheOut(FundoOut):
 
 
 @router.get("/fundos", response_model=list[FundoOut])
-def listar_fundos(db: Session = Depends(get_db)):
+def listar_fundos(db: Session = Depends(get_db)) -> list[FundoOut]:
     """Lista todos os FIIs cadastrados."""
-    return FundoRepository(db).listar_todos()
+    return [FundoOut.model_validate(f) for f in FundoRepository(db).listar_todos()]
 
 
 @router.get("/fundos/{ticker}", response_model=FundoDetalheOut)
-def detalhe_fundo(ticker: str, db: Session = Depends(get_db)):
+def detalhe_fundo(ticker: str, db: Session = Depends(get_db)) -> FundoDetalheOut:
     """Retorna dados detalhados de um FII pelo ticker."""
     fundo = FundoRepository(db).buscar_por_ticker(ticker.upper())
     if not fundo:

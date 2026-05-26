@@ -1,5 +1,7 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from app.utils.parsers.status_invest import StatusInvestParser
 
 FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_page.html").read_text(encoding="utf-8")

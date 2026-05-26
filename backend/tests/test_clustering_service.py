@@ -1,13 +1,13 @@
-import pytest
-import numpy as np
 from datetime import date
+
+import numpy as np
 
 from app.models.fundo import Fundo
 from app.models.indicador import Indicador
 from app.services.clustering_service import (
     ClusteringService,
-    preparar_features,
     interpretar_cluster,
+    preparar_features,
 )
 
 
@@ -35,8 +35,8 @@ def _criar_fundos_com_indicadores(db_session, n=20):
 
 def test_preparar_features_retorna_array(db_session):
     _criar_fundos_com_indicadores(db_session, 10)
-    from app.repositories.indicador_repository import IndicadorRepository
     from app.repositories.fundo_repository import FundoRepository
+    from app.repositories.indicador_repository import IndicadorRepository
     inds = IndicadorRepository(db_session).listar_mais_recentes_todos()
     fundos = {f.id: f for f in FundoRepository(db_session).listar_todos()}
     X, ids = preparar_features(inds, fundos)
@@ -58,8 +58,8 @@ def test_preparar_features_exclui_fundo_sem_liquidez(db_session):
     )
     db_session.add(ind)
     db_session.commit()
-    from app.repositories.indicador_repository import IndicadorRepository
     from app.repositories.fundo_repository import FundoRepository
+    from app.repositories.indicador_repository import IndicadorRepository
     inds = IndicadorRepository(db_session).listar_mais_recentes_todos()
     fundos = {f.id: f for f in FundoRepository(db_session).listar_todos()}
     X, ids = preparar_features(inds, fundos)

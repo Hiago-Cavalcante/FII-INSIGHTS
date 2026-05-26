@@ -1,5 +1,4 @@
-import pytest
-from datetime import date, datetime
+from datetime import date
 
 from app.models.fundo import Fundo
 from app.models.indicador import Indicador
@@ -7,10 +6,10 @@ from app.services.scoring_service import (
     ScoringService,
     classificar_score,
     pontuar_dy,
-    pontuar_pvp,
-    pontuar_vacancia,
     pontuar_liquidez,
+    pontuar_pvp,
     pontuar_segmento,
+    pontuar_vacancia,
 )
 
 

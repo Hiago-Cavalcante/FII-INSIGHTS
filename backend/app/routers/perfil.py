@@ -16,14 +16,14 @@ _PERFIL_ID = "perfil-unico"
 class PerfilOut(BaseModel):
     id: str
     tipo: str
-    pesos_personalizados: dict | None
+    pesos_personalizados: dict[str, float] | None
 
     model_config = {"from_attributes": True}
 
 
 class PerfilUpdate(BaseModel):
     tipo: str
-    pesos_personalizados: dict | None = None
+    pesos_personalizados: dict[str, float] | None = None
 
 
 def _get_ou_criar_perfil(db: Session) -> PerfilInvestidor:
@@ -37,17 +37,17 @@ def _get_ou_criar_perfil(db: Session) -> PerfilInvestidor:
 
 
 @router.get("/perfil", response_model=PerfilOut)
-def get_perfil(db: Session = Depends(get_db)):
+def get_perfil(db: Session = Depends(get_db)) -> PerfilOut:
     """Retorna o perfil do investidor."""
-    return _get_ou_criar_perfil(db)
+    return PerfilOut.model_validate(_get_ou_criar_perfil(db))
 
 
 @router.put("/perfil", response_model=PerfilOut)
-def update_perfil(body: PerfilUpdate, db: Session = Depends(get_db)):
+def update_perfil(body: PerfilUpdate, db: Session = Depends(get_db)) -> PerfilOut:
     """Atualiza tipo e pesos personalizados do perfil."""
     perfil = _get_ou_criar_perfil(db)
     perfil.tipo = body.tipo
     perfil.pesos_personalizados = body.pesos_personalizados
     db.commit()
     db.refresh(perfil)
-    return perfil
+    return PerfilOut.model_validate(perfil)

@@ -29,6 +29,6 @@ app.include_router(clustering.router, prefix="/api/v1")
 
 
 @app.get("/health")
-def health():
+def health() -> dict[str, str]:
     """Verifica se a API está operacional."""
     return {"status": "ok"}

@@ -55,12 +55,11 @@ def preparar_features(
         else:
             vacancia_media = vacancia_mediana
 
-        rows.append([
-            ind.dy_12m,
-            ind.p_vp,
-            vacancia_media,
-            math.log10(ind.liquidez_diaria),
-        ])
+        dy12m = ind.dy_12m
+        pvp = ind.p_vp
+        liq = ind.liquidez_diaria
+        assert dy12m is not None and pvp is not None and liq is not None
+        rows.append([dy12m, pvp, vacancia_media, math.log10(liq)])
         fundo_ids.append(ind.fundo_id)
 
     if not rows:
