@@ -13,5 +13,10 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Retorna a lista de origens CORS a partir da string separada por vírgulas."""
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
 
 settings = Settings()
