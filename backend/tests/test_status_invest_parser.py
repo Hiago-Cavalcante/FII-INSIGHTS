@@ -35,8 +35,9 @@ def test_extrair_fundamentais_retorna_todas_as_chaves(parser):
 
 def test_extrair_vacancia_pagina_real(parser):
     d = parser.extrair_vacancia(FIXTURE)
-    # HGLG11 exibe VACÂNCIA 0,000% (0% — fundo totalmente locado); ignora o widget '-%'.
-    assert d["vacancia_fisica"] == pytest.approx(0.0)
+    # Sem agregado do fundo no HTML; usa-se a MÉDIA das vacâncias por imóvel.
+    # HGLG11: imóveis variam (0%, 6,7%, 13,5%, ...) → média ≈ 3,79% (não 0% da 1ª).
+    assert d["vacancia_fisica"] == pytest.approx(0.0379, abs=1e-3)
     assert d["vacancia_financeira"] is None
 
 

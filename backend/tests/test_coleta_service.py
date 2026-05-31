@@ -1,6 +1,8 @@
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from app.repositories.fundo_repository import FundoRepository
 from app.repositories.indicador_repository import IndicadorRepository
 from app.services.coleta_service import ColetaService
@@ -72,6 +74,7 @@ def test_fallback_html_para_ticker_fora_do_screener(db_session):
     ind = _ind(db_session, fundo.id)
     assert ind.dy_12m is not None  # veio do HTML
     assert ind.patrimonio_liquido is not None
+    assert ind.vacancia_fisica == pytest.approx(0.0379, abs=1e-3)  # tijolo: vacância do HTML
 
 
 def test_vacancia_coletada_para_tijolo(db_session):
@@ -82,7 +85,7 @@ def test_vacancia_coletada_para_tijolo(db_session):
 
     assert "HGLG11" in cliente.paginas_buscadas  # tijolo busca HTML p/ vacância
     ind = _ind(db_session, fundo.id)
-    assert ind.vacancia_fisica == 0.0  # HGLG11 exibe VACÂNCIA 0,000%
+    assert ind.vacancia_fisica == pytest.approx(0.0379, abs=1e-3)  # média por imóvel
 
 
 def test_delay_aplicado_entre_fundos(db_session):

@@ -19,6 +19,7 @@ class StatusInvestParser:
     def extrair_fundamentais(self, html: str) -> dict[str, Any]:
         """dy_12m, p_vp, liquidez, cotistas, patrimônio e dy_atual da página."""
         soup = BeautifulSoup(html, "lxml")
+        # Assume o layout atual do SI: o 1º "Último rendimento"/"Valor atual" é o vigente.
         ultimo = self._br_float(self._valor(soup, r"[ÚU]ltimo rendimento"))
         preco = self._br_float(self._valor(soup, r"Valor atual"))
         return {
@@ -60,8 +61,15 @@ class StatusInvestParser:
         return None
 
     def _vacancia(self, soup: BeautifulSoup, labels: list[str]) -> float | None:
-        """Primeiro valor de vacância que parseia (ignora widgets sem dado, ex.: '-%')."""
+        """Vacância do fundo como MÉDIA dos valores que parseiam para um rótulo.
+
+        O Status Invest nem sempre expõe um agregado do fundo no HTML estático
+        (mostra '-%'); quando só há vacância por imóvel, usa-se a média das
+        vacâncias por imóvel como proxy (ignorando widgets sem dado, ex.: '-%').
+        Limitação conhecida: média não ponderada por área/receita.
+        """
         for label in labels:
+            valores: list[float] = []
             for node in soup.find_all(string=re.compile(label, re.IGNORECASE)):
                 parent = node.parent
                 if not isinstance(parent, Tag):
@@ -70,7 +78,9 @@ class StatusInvestParser:
                 if isinstance(strong, Tag):
                     valor = self._pct(strong.get_text(strip=True))
                     if valor is not None:
-                        return valor
+                        valores.append(valor)
+            if valores:
+                return sum(valores) / len(valores)
         return None
 
     @staticmethod
