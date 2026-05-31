@@ -211,6 +211,9 @@ def calcular_score_com_pesos(
             continue
         peso_dim = sum(pesos[k] for k in indicadores_dim)
         peso_presente = sum(pesos[k] for k in presentes)
+        if peso_presente == 0:
+            # Os únicos indicadores presentes têm peso 0: a dimensão não contribui.
+            continue
         for k in presentes:
             pesos_efetivos[k] = pesos[k] * (peso_dim / peso_presente)
 

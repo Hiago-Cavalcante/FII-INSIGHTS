@@ -216,3 +216,19 @@ def test_dimensao_risco_inteira_ausente_renormaliza():
 
 def test_score_sem_pontuacoes_da_zero():
     assert calcular_score_com_pesos(_pont(), PESOS_DEFAULT) == 0.0
+
+
+def test_score_conservador_com_estrutura_so_segmento_nao_quebra():
+    # Regressão: peso_presente == 0 quando só segmento (peso 0 no conservador) está presente
+    # na dimensão Estrutura. Antes levantava ZeroDivisionError.
+    from app.services.scoring_service import PESOS_POR_PERFIL
+
+    pontuacoes = {
+        "dy_atual": 5.0, "dy_12m": 5.0, "p_vp": 4.0,
+        "vacancia_fisica": None, "vacancia_financeira": None,
+        "liquidez_diaria": 4.0, "volatilidade_12m": 5.0,
+        "patrimonio_liquido": None, "num_cotistas": None, "segmento": 3.0,
+    }
+    score = calcular_score_com_pesos(pontuacoes, PESOS_POR_PERFIL["conservador"])
+    assert isinstance(score, float)
+    assert 0.0 <= score <= 100.0
