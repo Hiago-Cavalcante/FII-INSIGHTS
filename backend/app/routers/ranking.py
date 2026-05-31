@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Literal
+
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -32,11 +34,11 @@ class RankingItemOut(BaseModel):
 
 @router.get("/ranking", response_model=list[RankingItemOut])
 def listar_ranking(
-    perfil: str = Query("moderado", description="conservador | moderado | arrojado"),
+    perfil: Literal["conservador", "moderado", "arrojado"] = Query("moderado"),
     db: Session = Depends(get_db),
 ) -> list[RankingItemOut]:
     """Ranking calculado sob demanda com os pesos canônicos do perfil."""
-    pesos = PESOS_POR_PERFIL.get(perfil)
-    if pesos is None:
-        raise HTTPException(status_code=422, detail=f"Perfil inválido: {perfil}")
-    return [RankingItemOut.model_validate(i) for i in montar_ranking(db, pesos)]
+    return [
+        RankingItemOut.model_validate(i)
+        for i in montar_ranking(db, PESOS_POR_PERFIL[perfil])
+    ]
