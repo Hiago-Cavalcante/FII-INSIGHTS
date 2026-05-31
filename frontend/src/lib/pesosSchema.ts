@@ -3,16 +3,16 @@ import { z } from "zod";
 const campoSchema = z.number().min(0, "Mínimo 0").max(60, "Máximo 60 por indicador");
 
 const basePesos = z.object({
-  dy_atual:             campoSchema,
-  dy_12m:               campoSchema,
-  p_vp:                 campoSchema,
-  vacancia_fisica:      campoSchema,
-  vacancia_financeira:  campoSchema,
-  liquidez:             campoSchema,
-  volatilidade:         campoSchema,
-  pl:                   campoSchema,
-  cotistas:             campoSchema,
-  segmento:             campoSchema,
+  dy_atual:            campoSchema,
+  dy_12m:              campoSchema,
+  p_vp:                campoSchema,
+  vacancia_fisica:     campoSchema,
+  vacancia_financeira: campoSchema,
+  liquidez_diaria:     campoSchema,
+  volatilidade_12m:    campoSchema,
+  patrimonio_liquido:  campoSchema,
+  num_cotistas:        campoSchema,
+  segmento:            campoSchema,
 });
 
 export const pesosSchema = basePesos.superRefine((data, ctx) => {

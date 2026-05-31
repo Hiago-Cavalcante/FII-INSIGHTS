@@ -65,3 +65,17 @@ export interface FundoRanqueado extends FundoComIndicadores {
   score: number;
   classificacao: Classificacao;
 }
+
+// Pesos do modelo (frações que somam 1.0). Chaves iguais às do backend.
+export interface PesosIndicadores {
+  dy_atual: number;
+  dy_12m: number;
+  p_vp: number;
+  vacancia_fisica: number;
+  vacancia_financeira: number;
+  liquidez_diaria: number;
+  volatilidade_12m: number;
+  patrimonio_liquido: number;
+  num_cotistas: number;
+  segmento: number;
+}

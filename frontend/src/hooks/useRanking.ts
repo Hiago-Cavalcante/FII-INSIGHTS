@@ -4,7 +4,6 @@ import { getRanking, simularRanking } from "@/api/endpoints/ranking";
 import { usePerfilStore } from "@/stores/perfilStore";
 import type { RankingItem } from "@/types/ranking";
 import type { Classificacao } from "@/types/domain";
-import type { PesosPayload } from "@/types/ranking";
 
 interface UseRankingResult {
   fundos: RankingItem[];
@@ -24,11 +23,7 @@ export function useRanking(): UseRankingResult {
 
   const query = useQuery({
     queryKey: ["ranking", pesosCustom ?? tipo],
-    queryFn: () =>
-      // PesosIndicadores usa nomes curtos (liquidez, volatilidade, pl, cotistas)
-      // PesosPayload usa nomes longos (liquidez_diaria, volatilidade_12m, etc.)
-      // O alinhamento de chaves ocorre em task posterior; por ora cast via unknown
-      pesosCustom ? simularRanking(pesosCustom as unknown as PesosPayload) : getRanking(tipo),
+    queryFn: () => (pesosCustom ? simularRanking(pesosCustom) : getRanking(tipo)),
   });
 
   const fundos = useMemo(() => {

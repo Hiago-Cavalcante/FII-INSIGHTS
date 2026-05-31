@@ -1,14 +1,14 @@
-import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { usePerfilStore } from "@/stores/perfilStore";
 import type { TipoPerfil, Classificacao } from "@/types/domain";
+import type { PesosIndicadores } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { Divider } from "@/components/ui/Divider";
 import { Check } from "lucide-react";
 import { pesosSchema, type PesosForm } from "@/lib/pesosSchema";
-import { calcularScoreComPesos, classificar, type PesosIndicadores } from "@/lib/scoring";
-import { FUNDOS_MOCK } from "@/mocks";
+import { simularRanking } from "@/api/endpoints/ranking";
 
 const cardBase =
   "relative w-full rounded-lg border p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800";
@@ -106,18 +106,18 @@ const INDICADORES: Array<{ chave: keyof PesosForm; rotulo: string; dimensao: str
   { chave: "p_vp",                rotulo: "P/VP",                 dimensao: "Valuation"     },
   { chave: "vacancia_fisica",     rotulo: "Vacância Física",      dimensao: "Risco"         },
   { chave: "vacancia_financeira", rotulo: "Vacância Financeira",  dimensao: "Risco"         },
-  { chave: "liquidez",            rotulo: "Liquidez Diária",      dimensao: "Risco"         },
-  { chave: "volatilidade",        rotulo: "Volatilidade 12M",     dimensao: "Risco"         },
-  { chave: "pl",                  rotulo: "Patrimônio Líquido",   dimensao: "Estrutura"     },
-  { chave: "cotistas",            rotulo: "Nº de Cotistas",       dimensao: "Estrutura"     },
+  { chave: "liquidez_diaria",     rotulo: "Liquidez Diária",      dimensao: "Risco"         },
+  { chave: "volatilidade_12m",    rotulo: "Volatilidade 12M",     dimensao: "Risco"         },
+  { chave: "patrimonio_liquido",  rotulo: "Patrimônio Líquido",   dimensao: "Estrutura"     },
+  { chave: "num_cotistas",        rotulo: "Nº de Cotistas",       dimensao: "Estrutura"     },
   { chave: "segmento",            rotulo: "Segmento",             dimensao: "Estrutura"     },
 ];
 
 const PESOS_PADRAO_MODERADO: PesosForm = {
   dy_atual: 20, dy_12m: 10, p_vp: 15,
   vacancia_fisica: 10, vacancia_financeira: 10,
-  liquidez: 10, volatilidade: 10,
-  pl: 5, cotistas: 5, segmento: 5,
+  liquidez_diaria: 10, volatilidade_12m: 10,
+  patrimonio_liquido: 5, num_cotistas: 5, segmento: 5,
 };
 
 const SCORE_COLOR: Record<Classificacao, string> = {
@@ -137,10 +137,10 @@ function PesosCustomizadosForm() {
         p_vp:                Math.round(pesosCustom.p_vp * 100),
         vacancia_fisica:     Math.round(pesosCustom.vacancia_fisica * 100),
         vacancia_financeira: Math.round(pesosCustom.vacancia_financeira * 100),
-        liquidez:            Math.round(pesosCustom.liquidez * 100),
-        volatilidade:        Math.round(pesosCustom.volatilidade * 100),
-        pl:                  Math.round(pesosCustom.pl * 100),
-        cotistas:            Math.round(pesosCustom.cotistas * 100),
+        liquidez_diaria:     Math.round(pesosCustom.liquidez_diaria * 100),
+        volatilidade_12m:    Math.round(pesosCustom.volatilidade_12m * 100),
+        patrimonio_liquido:  Math.round(pesosCustom.patrimonio_liquido * 100),
+        num_cotistas:        Math.round(pesosCustom.num_cotistas * 100),
         segmento:            Math.round(pesosCustom.segmento * 100),
       }
     : PESOS_PADRAO_MODERADO;
@@ -154,42 +154,41 @@ function PesosCustomizadosForm() {
   const valores = watch();
   const soma = Object.values(valores).reduce((a, v) => a + (Number(v) || 0), 0);
 
-  const previewTop3 = useMemo(() => {
-    if (Math.abs(soma - 100) > 0.01) return [];
-    const pesos: PesosIndicadores = {
-      dy_atual:            valores.dy_atual / 100,
-      dy_12m:              valores.dy_12m / 100,
-      p_vp:                valores.p_vp / 100,
-      vacancia_fisica:     valores.vacancia_fisica / 100,
-      vacancia_financeira: valores.vacancia_financeira / 100,
-      liquidez:            valores.liquidez / 100,
-      volatilidade:        valores.volatilidade / 100,
-      pl:                  valores.pl / 100,
-      cotistas:            valores.cotistas / 100,
-      segmento:            valores.segmento / 100,
-    };
-    return FUNDOS_MOCK
-      .map((f) => ({
-        ticker: f.ticker,
-        score: calcularScoreComPesos(f, pesos),
-        classificacao: classificar(calcularScoreComPesos(f, pesos)),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
-  }, [valores, soma]);
+  const pesosFracao: PesosIndicadores | null =
+    Math.abs(soma - 100) < 0.01
+      ? {
+          dy_atual: valores.dy_atual / 100,
+          dy_12m: valores.dy_12m / 100,
+          p_vp: valores.p_vp / 100,
+          vacancia_fisica: valores.vacancia_fisica / 100,
+          vacancia_financeira: valores.vacancia_financeira / 100,
+          liquidez_diaria: valores.liquidez_diaria / 100,
+          volatilidade_12m: valores.volatilidade_12m / 100,
+          patrimonio_liquido: valores.patrimonio_liquido / 100,
+          num_cotistas: valores.num_cotistas / 100,
+          segmento: valores.segmento / 100,
+        }
+      : null;
+
+  const previewQuery = useQuery({
+    queryKey: ["preview", pesosFracao],
+    queryFn: () => simularRanking(pesosFracao!),
+    enabled: pesosFracao !== null,
+  });
+  const previewTop3 = (previewQuery.data ?? []).slice(0, 3);
 
   function onSubmit(data: PesosForm) {
     const pesos: PesosIndicadores = {
-      dy_atual:            data.dy_atual / 100,
-      dy_12m:              data.dy_12m / 100,
-      p_vp:                data.p_vp / 100,
-      vacancia_fisica:     data.vacancia_fisica / 100,
+      dy_atual: data.dy_atual / 100,
+      dy_12m: data.dy_12m / 100,
+      p_vp: data.p_vp / 100,
+      vacancia_fisica: data.vacancia_fisica / 100,
       vacancia_financeira: data.vacancia_financeira / 100,
-      liquidez:            data.liquidez / 100,
-      volatilidade:        data.volatilidade / 100,
-      pl:                  data.pl / 100,
-      cotistas:            data.cotistas / 100,
-      segmento:            data.segmento / 100,
+      liquidez_diaria: data.liquidez_diaria / 100,
+      volatilidade_12m: data.volatilidade_12m / 100,
+      patrimonio_liquido: data.patrimonio_liquido / 100,
+      num_cotistas: data.num_cotistas / 100,
+      segmento: data.segmento / 100,
     };
     setPesosCustom(pesos);
   }
@@ -277,7 +276,7 @@ function PesosCustomizadosForm() {
               <div key={f.ticker}>
                 <span className="text-xs text-gray-400">{i + 1}. </span>
                 <span className="text-sm font-mono font-semibold text-gray-900 dark:text-gray-50">{f.ticker}</span>
-                <span className={cn("ml-1 text-sm tabular-nums font-medium", SCORE_COLOR[f.classificacao])}>
+                <span className={cn("ml-1 text-sm tabular-nums font-medium", SCORE_COLOR[f.classificacao as Classificacao])}>
                   {f.score.toFixed(1)}
                 </span>
               </div>

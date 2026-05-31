@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TipoPerfil } from "@/types/domain";
-import type { PesosIndicadores } from "@/lib/scoring";
+import type { PesosIndicadores } from "@/types/domain";
 
 interface PerfilState {
   tipo: TipoPerfil;

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getRanking, simularRanking } from "@/api/endpoints/ranking";
 import { usePerfilStore } from "@/stores/perfilStore";
-import type { RankingItem, PesosPayload } from "@/types/ranking";
+import type { RankingItem } from "@/types/ranking";
 import type { Classificacao } from "@/types/domain";
 
 interface DashboardData {
@@ -20,10 +20,7 @@ export function useDashboard(): DashboardData {
 
   const query = useQuery({
     queryKey: ["ranking", pesosCustom ?? tipo],
-    queryFn: () =>
-      pesosCustom
-        ? simularRanking(pesosCustom as unknown as PesosPayload)
-        : getRanking(tipo),
+    queryFn: () => (pesosCustom ? simularRanking(pesosCustom) : getRanking(tipo)),
   });
 
   return useMemo(() => {
