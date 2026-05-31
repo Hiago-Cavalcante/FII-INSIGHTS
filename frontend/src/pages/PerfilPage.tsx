@@ -10,6 +10,23 @@ import { Check } from "lucide-react";
 import { pesosSchema, type PesosForm } from "@/lib/pesosSchema";
 import { simularRanking } from "@/api/endpoints/ranking";
 
+// PesosForm traz percentuais inteiros (somam 100); converte para frações (somam 1.0).
+// As chaves são idênticas às do PesosPayload da API (mesmo contrato) — o build quebra se divergirem.
+function toPesosIndicadores(p: PesosForm): PesosIndicadores {
+  return {
+    dy_atual: p.dy_atual / 100,
+    dy_12m: p.dy_12m / 100,
+    p_vp: p.p_vp / 100,
+    vacancia_fisica: p.vacancia_fisica / 100,
+    vacancia_financeira: p.vacancia_financeira / 100,
+    liquidez_diaria: p.liquidez_diaria / 100,
+    volatilidade_12m: p.volatilidade_12m / 100,
+    patrimonio_liquido: p.patrimonio_liquido / 100,
+    num_cotistas: p.num_cotistas / 100,
+    segmento: p.segmento / 100,
+  };
+}
+
 const cardBase =
   "relative w-full rounded-lg border p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800";
 
@@ -155,20 +172,7 @@ function PesosCustomizadosForm() {
   const soma = Object.values(valores).reduce((a, v) => a + (Number(v) || 0), 0);
 
   const pesosFracao: PesosIndicadores | null =
-    Math.abs(soma - 100) < 0.01
-      ? {
-          dy_atual: valores.dy_atual / 100,
-          dy_12m: valores.dy_12m / 100,
-          p_vp: valores.p_vp / 100,
-          vacancia_fisica: valores.vacancia_fisica / 100,
-          vacancia_financeira: valores.vacancia_financeira / 100,
-          liquidez_diaria: valores.liquidez_diaria / 100,
-          volatilidade_12m: valores.volatilidade_12m / 100,
-          patrimonio_liquido: valores.patrimonio_liquido / 100,
-          num_cotistas: valores.num_cotistas / 100,
-          segmento: valores.segmento / 100,
-        }
-      : null;
+    Math.abs(soma - 100) < 0.01 ? toPesosIndicadores(valores) : null;
 
   const previewQuery = useQuery({
     queryKey: ["preview", pesosFracao],
@@ -178,19 +182,7 @@ function PesosCustomizadosForm() {
   const previewTop3 = (previewQuery.data ?? []).slice(0, 3);
 
   function onSubmit(data: PesosForm) {
-    const pesos: PesosIndicadores = {
-      dy_atual: data.dy_atual / 100,
-      dy_12m: data.dy_12m / 100,
-      p_vp: data.p_vp / 100,
-      vacancia_fisica: data.vacancia_fisica / 100,
-      vacancia_financeira: data.vacancia_financeira / 100,
-      liquidez_diaria: data.liquidez_diaria / 100,
-      volatilidade_12m: data.volatilidade_12m / 100,
-      patrimonio_liquido: data.patrimonio_liquido / 100,
-      num_cotistas: data.num_cotistas / 100,
-      segmento: data.segmento / 100,
-    };
-    setPesosCustom(pesos);
+    setPesosCustom(toPesosIndicadores(data));
   }
 
   function handleReset() {
