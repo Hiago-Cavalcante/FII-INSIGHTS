@@ -38,4 +38,22 @@ describe("useRanking", () => {
     act(() => result.current.setBusca("zzz"));
     await waitFor(() => expect(result.current.fundos).toHaveLength(0));
   });
+
+  it("expõe isError quando a API falha", async () => {
+    vi.mocked(rankingApi.getRanking).mockRejectedValue(new Error("falhou"));
+    const { result } = renderHook(() => useRanking(), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it("filtra por classificação", async () => {
+    vi.mocked(rankingApi.getRanking).mockResolvedValue([
+      ITEM,
+      { ...ITEM, ticker: "BBBB11", classificacao: "Bom", score: 65 },
+    ]);
+    const { result } = renderHook(() => useRanking(), { wrapper });
+    await waitFor(() => expect(result.current.fundos).toHaveLength(2));
+    act(() => result.current.setFiltro("Bom"));
+    await waitFor(() => expect(result.current.fundos).toHaveLength(1));
+    expect(result.current.fundos[0].ticker).toBe("BBBB11");
+  });
 });

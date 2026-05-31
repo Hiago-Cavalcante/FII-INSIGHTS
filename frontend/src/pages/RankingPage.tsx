@@ -236,9 +236,6 @@ export function RankingPage() {
   const lastRow = Math.min((pageIndex + 1) * pageSize, totalRows);
   const pageCount = table.getPageCount();
 
-  if (isError) {
-    return <ErrorState message="Não foi possível carregar o ranking." />;
-  }
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -247,6 +244,9 @@ export function RankingPage() {
         ))}
       </div>
     );
+  }
+  if (isError) {
+    return <ErrorState message="Não foi possível carregar o ranking." />;
   }
 
   return (
