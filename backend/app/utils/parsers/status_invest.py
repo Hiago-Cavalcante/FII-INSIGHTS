@@ -5,80 +5,91 @@ from typing import Any
 
 from bs4 import BeautifulSoup, Tag
 
+from app.utils.parsers.status_invest_json import calcular_dy_atual
+
 
 class StatusInvestParser:
-    """Extrai indicadores financeiros de FII da página do Status Invest."""
+    """Extrai indicadores da PÁGINA HTML do FII no Status Invest.
 
-    def extrair(self, html: str) -> dict[str, Any]:
+    Fonte de fallback: os fundamentais vêm normalmente do screener JSON; este
+    parser cobre a vacância (sem endpoint JSON) e serve de fallback completo para
+    os poucos tickers que o screener não traz.
+    """
+
+    def extrair_fundamentais(self, html: str) -> dict[str, Any]:
+        """dy_12m, p_vp, liquidez, cotistas, patrimônio e dy_atual da página."""
         soup = BeautifulSoup(html, "lxml")
+        ultimo = self._br_float(self._valor(soup, r"[ÚU]ltimo rendimento"))
+        preco = self._br_float(self._valor(soup, r"Valor atual"))
         return {
-            "dy_atual": self._extrair_dy_atual(soup),
-            "dy_12m": self._extrair_dy_12m(soup),
-            "p_vp": self._extrair_p_vp(soup),
-            "vacancia_fisica": self._extrair_vacancia_fisica(soup),
-            "vacancia_financeira": self._extrair_vacancia_financeira(soup),
-            "liquidez_diaria": self._extrair_liquidez(soup),
-            "volatilidade_12m": None,
-            "patrimonio_liquido": self._extrair_patrimonio(soup),
-            "num_cotistas": self._extrair_cotistas(soup),
+            "dy_12m": self._pct(self._valor(soup, r"Dividend Yield")),
+            "p_vp": self._br_float(self._valor(soup, r"^P/VP$")),
+            "liquidez_diaria": self._br_float(
+                self._valor(soup, r"Liquidez m[ée]dia di[áa]ria")
+            ),
+            "num_cotistas": self._br_int(self._valor(soup, r"N[ºo°] de Cotistas")),
+            "patrimonio_liquido": self._patrimonio(html),
+            "dy_atual": calcular_dy_atual(ultimo, preco),
         }
 
-    def _h3_por_label(self, soup: BeautifulSoup, label: str) -> Tag | None:
-        for h3 in soup.find_all("h3"):
-            if re.search(label, h3.get_text(), re.IGNORECASE):
-                return h3
-        return None
+    def extrair_vacancia(self, html: str) -> dict[str, Any]:
+        """Vacância física/financeira (fração). Nula em FIIs de papel/FoF."""
+        soup = BeautifulSoup(html, "lxml")
+        return {
+            "vacancia_fisica": self._vacancia(
+                soup, [r"vac[âa]ncia\s+f[íi]sica", r"^vac[âa]ncia$"]
+            ),
+            "vacancia_financeira": self._vacancia(
+                soup, [r"vac[âa]ncia\s+financeira"]
+            ),
+        }
 
-    def _strong_apos_h3(self, soup: BeautifulSoup, label: str) -> str | None:
-        h3 = self._h3_por_label(soup, label)
-        if not h3:
-            return None
-        strong = h3.find_next("strong")
-        return strong.get_text(strip=True) if isinstance(strong, Tag) else None
+    # ── helpers de busca ──────────────────────────────────────────────
 
-    def _p_apos_h3(self, soup: BeautifulSoup, label: str) -> str | None:
-        h3 = self._h3_por_label(soup, label)
-        if not h3:
-            return None
-        p = h3.find_next("p")
-        if isinstance(p, Tag):
-            return p.get_text(strip=True).replace("R$", "").strip()
-        return None
-
-    def _strong_apos_span(self, soup: BeautifulSoup, label: str) -> str | None:
-        for node in soup.find_all(string=re.compile(label, re.IGNORECASE)):
+    def _valor(self, soup: BeautifulSoup, label_regex: str) -> str | None:
+        """Texto do primeiro <strong class="value"> após um rótulo que casa o regex."""
+        for node in soup.find_all(string=re.compile(label_regex, re.IGNORECASE)):
             parent = node.parent
             if not isinstance(parent, Tag):
                 continue
-            strong = parent.find_next("strong")
-            if isinstance(strong, Tag):
-                return strong.get_text(strip=True).replace("%", "").strip()
-        return None
-
-    def _valor_por_label_span(self, soup: BeautifulSoup, label: str) -> str | None:
-        """Encontra strong[class=value] dentro do div container do span com o label.
-
-        Estrutura real do Status Invest:
-          <div>  ← container
-            <span class="sub-value ...">
-              <span class="d-lg-none">Label aqui</span>
-            </span>
-            <div><strong class="value">4.763.941,38</strong></div>
-          </div>
-        """
-        for node in soup.find_all(string=re.compile(label, re.IGNORECASE)):
-            tag: Tag | None = node.parent
-            # Sobe até encontrar o primeiro div ancestral (o container)
-            while isinstance(tag, Tag) and tag.name != "div":
-                tag = tag.parent
-            if not isinstance(tag, Tag):
-                continue
-            strong = tag.find("strong", class_="value")
+            strong = parent.find_next("strong", class_="value")
             if isinstance(strong, Tag):
                 texto = strong.get_text(strip=True)
                 if texto:
                     return texto
         return None
+
+    def _vacancia(self, soup: BeautifulSoup, labels: list[str]) -> float | None:
+        """Primeiro valor de vacância que parseia (ignora widgets sem dado, ex.: '-%')."""
+        for label in labels:
+            for node in soup.find_all(string=re.compile(label, re.IGNORECASE)):
+                parent = node.parent
+                if not isinstance(parent, Tag):
+                    continue
+                strong = parent.find_next("strong", class_="value")
+                if isinstance(strong, Tag):
+                    valor = self._pct(strong.get_text(strip=True))
+                    if valor is not None:
+                        return valor
+        return None
+
+    @staticmethod
+    def _patrimonio(html: str) -> float | None:
+        """Patrimônio líquido vem do bloco JSON-LD embutido na página."""
+        m = re.search(
+            r'"Patrim[ôo]nio l[íi]quido"\s*,\s*"currency"\s*:\s*"BRL"\s*,'
+            r'\s*"value"\s*:\s*([0-9.]+)',
+            html,
+            re.IGNORECASE,
+        )
+        if not m:
+            return None
+        try:
+            return float(m.group(1))
+        except ValueError:
+            return None
+
+    # ── conversores de formato brasileiro ────────────────────────────
 
     @staticmethod
     def _br_float(texto: str | None) -> float | None:
@@ -90,7 +101,8 @@ class StatusInvestParser:
             return None
 
     @staticmethod
-    def _br_pct(texto: str | None) -> float | None:
+    def _pct(texto: str | None) -> float | None:
+        """Converte '8,48' ou '0,000%' → fração (0.0848, 0.0)."""
         if not texto:
             return None
         try:
@@ -107,44 +119,3 @@ class StatusInvestParser:
             return int(texto.replace(".", "").replace(",", "").strip())
         except ValueError:
             return None
-
-    def _extrair_p_vp(self, soup: BeautifulSoup) -> float | None:
-        return self._br_float(self._strong_apos_h3(soup, r"^P/VP$"))
-
-    def _extrair_dy_12m(self, soup: BeautifulSoup) -> float | None:
-        return self._br_pct(self._strong_apos_h3(soup, r"Dividend Yield"))
-
-    def _extrair_dy_atual(self, soup: BeautifulSoup) -> float | None:
-        for label in [r"Último DY", r"DY Atual", r"Último Rendimento"]:
-            valor = self._strong_apos_h3(soup, label)
-            if valor:
-                return self._br_pct(valor)
-        return None
-
-    def _extrair_liquidez(self, soup: BeautifulSoup) -> float | None:
-        # Tenta via h3 primeiro; fallback para estrutura span.sub-value + strong.value
-        valor = self._strong_apos_h3(soup, r"Liq\. méd")
-        if not valor:
-            valor = self._valor_por_label_span(soup, r"Liq\. méd")
-        return self._br_float(valor)
-
-    def _extrair_patrimonio(self, soup: BeautifulSoup) -> float | None:
-        texto = self._p_apos_h3(soup, r"^Patrimônio$")
-        if texto:
-            return self._br_float(texto)
-        valor = self._strong_apos_h3(soup, r"Patrimônio")
-        if not valor:
-            valor = self._valor_por_label_span(soup, r"Patrimônio")
-        return self._br_float(valor)
-
-    def _extrair_cotistas(self, soup: BeautifulSoup) -> int | None:
-        valor = self._strong_apos_h3(soup, r"Nº de Cotistas")
-        if not valor:
-            valor = self._valor_por_label_span(soup, r"Cotistas")
-        return self._br_int(valor)
-
-    def _extrair_vacancia_fisica(self, soup: BeautifulSoup) -> float | None:
-        return self._br_pct(self._strong_apos_span(soup, r"VACÂNCIA FÍSICA"))
-
-    def _extrair_vacancia_financeira(self, soup: BeautifulSoup) -> float | None:
-        return self._br_pct(self._strong_apos_span(soup, r"VACÂNCIA FINANCEIRA"))

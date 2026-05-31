@@ -9,13 +9,19 @@ from sqlalchemy.orm import Session
 
 from app.repositories.fundo_repository import FundoRepository
 from app.repositories.indicador_repository import IndicadorRepository
-from app.utils.http_client import criar_cliente_http, fetch_com_retry
+from app.services.volatilidade import calcular_volatilidade_anualizada
 from app.utils.parsers.status_invest import StatusInvestParser
+from app.utils.parsers.status_invest_json import parse_screener
+from app.utils.status_invest_client import StatusInvestClient
 
 logger = logging.getLogger(__name__)
 
-_SI_BASE = "https://statusinvest.com.br/fundos-imobiliarios"
 _DELAY = 0.3
+
+# Segmentos de "tijolo" têm vacância; papel/FoF (Recebíveis, Fundo de Fundos) não.
+_SEGMENTOS_TIJOLO = frozenset(
+    {"Logística", "Lajes Corporativas", "Shopping", "Renda Urbana", "Híbrido"}
+)
 
 
 @dataclass
@@ -26,10 +32,15 @@ class ColetaResultado:
 
 
 class ColetaService:
-    def __init__(self, db: Session) -> None:
+    """Coleta híbrida: screener JSON (fundamentais) + série de preços (volatilidade)
+    + página HTML (vacância dos FIIs de tijolo e fallback dos que faltam no screener).
+    """
+
+    def __init__(self, db: Session, client: StatusInvestClient | None = None) -> None:
         self._db = db
         self._fundos = FundoRepository(db)
         self._indicadores = IndicadorRepository(db)
+        self._client = client or StatusInvestClient()
         self._parser = StatusInvestParser()
 
     def coletar_todos(self) -> ColetaResultado:
@@ -37,20 +48,56 @@ class ColetaService:
         resultado = ColetaResultado()
         hoje = date.today()
 
-        with criar_cliente_http() as client:
-            for i, fundo in enumerate(fundos):
-                if i > 0:
-                    time.sleep(_DELAY)
-                url = f"{_SI_BASE}/{fundo.ticker}"
+        screener = parse_screener(self._client.buscar_screener())
+
+        for i, fundo in enumerate(fundos):
+            if i > 0:
+                time.sleep(_DELAY)
+            try:
+                campos = dict(screener.get(fundo.ticker, {}))
+                screener_miss = fundo.ticker not in screener
+
+                # Volatilidade (sempre, calculada da série de preços).
                 try:
-                    html = fetch_com_retry(client, url)
-                    campos = self._parser.extrair(html)
-                    self._indicadores.upsert(fundo_id=fundo.id, data_referencia=hoje, **campos)
-                    resultado.coletados += 1
-                    logger.info("Coletado: %s", fundo.ticker)
+                    precos = self._client.buscar_serie_precos(fundo.ticker)
+                    campos["volatilidade_12m"] = calcular_volatilidade_anualizada(precos)
                 except Exception as e:
+                    campos.setdefault("volatilidade_12m", None)
+                    logger.warning("Volatilidade indisponível p/ %s: %s", fundo.ticker, e)
+
+                # Página HTML só quando agrega: fallback (fora do screener) ou vacância (tijolo).
+                tijolo = self._eh_tijolo(fundo.segmento)
+                if screener_miss or tijolo:
+                    try:
+                        html = self._client.buscar_pagina_html(fundo.ticker)
+                        if screener_miss:
+                            for chave, valor in self._parser.extrair_fundamentais(
+                                html
+                            ).items():
+                                campos.setdefault(chave, valor)
+                        if tijolo:
+                            campos.update(self._parser.extrair_vacancia(html))
+                    except Exception as e:
+                        logger.warning("Página HTML indisponível p/ %s: %s", fundo.ticker, e)
+
+                if not any(valor is not None for valor in campos.values()):
                     resultado.falhas += 1
-                    resultado.erros.append((fundo.ticker, str(e)))
-                    logger.warning("Falha em %s: %s", fundo.ticker, e)
+                    resultado.erros.append((fundo.ticker, "sem dados"))
+                    logger.warning("Sem dados para %s", fundo.ticker)
+                    continue
+
+                self._indicadores.upsert(
+                    fundo_id=fundo.id, data_referencia=hoje, **campos
+                )
+                resultado.coletados += 1
+                logger.info("Coletado: %s", fundo.ticker)
+            except Exception as e:
+                resultado.falhas += 1
+                resultado.erros.append((fundo.ticker, str(e)))
+                logger.warning("Falha em %s: %s", fundo.ticker, e)
 
         return resultado
+
+    @staticmethod
+    def _eh_tijolo(segmento: str | None) -> bool:
+        return segmento in _SEGMENTOS_TIJOLO

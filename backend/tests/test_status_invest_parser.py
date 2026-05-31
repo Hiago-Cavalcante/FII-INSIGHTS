@@ -4,7 +4,10 @@ import pytest
 
 from app.utils.parsers.status_invest import StatusInvestParser
 
-FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_page.html").read_text(encoding="utf-8")
+# Página real do HGLG11 (capturada do Status Invest) — estrutura fiel.
+FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_real.html").read_text(
+    encoding="utf-8"
+)
 
 
 @pytest.fixture
@@ -12,48 +15,38 @@ def parser():
     return StatusInvestParser()
 
 
-def test_extrair_p_vp(parser):
-    assert parser.extrair(FIXTURE)["p_vp"] == pytest.approx(0.93, abs=0.01)
+def test_extrair_fundamentais_pagina_real(parser):
+    d = parser.extrair_fundamentais(FIXTURE)
+    assert d["dy_12m"] == pytest.approx(0.0848, abs=1e-4)
+    assert d["p_vp"] == pytest.approx(0.94, abs=1e-2)
+    assert d["liquidez_diaria"] == pytest.approx(13_513_276.91, rel=1e-3)
+    assert d["num_cotistas"] == 565_330
+    assert d["patrimonio_liquido"] == pytest.approx(7_234_911_198.0, rel=1e-6)
+    assert d["dy_atual"] == pytest.approx(0.0848, abs=1e-3)  # 1,10 × 12 / 155,71
 
 
-def test_extrair_dy_12m(parser):
-    assert parser.extrair(FIXTURE)["dy_12m"] == pytest.approx(0.085, abs=0.001)
-
-
-def test_extrair_dy_atual(parser):
-    assert parser.extrair(FIXTURE)["dy_atual"] == pytest.approx(0.0072, abs=0.0001)
-
-
-def test_extrair_liquidez(parser):
-    assert parser.extrair(FIXTURE)["liquidez_diaria"] == pytest.approx(9_863_300.65, rel=0.01)
-
-
-def test_extrair_patrimonio(parser):
-    assert parser.extrair(FIXTURE)["patrimonio_liquido"] == pytest.approx(7_234_911_198.0, rel=0.01)
-
-
-def test_extrair_cotistas(parser):
-    assert parser.extrair(FIXTURE)["num_cotistas"] == 565_330
-
-
-def test_extrair_vacancia_fisica(parser):
-    assert parser.extrair(FIXTURE)["vacancia_fisica"] == pytest.approx(0.025, abs=0.001)
-
-
-def test_extrair_vacancia_financeira(parser):
-    assert parser.extrair(FIXTURE)["vacancia_financeira"] == pytest.approx(0.031, abs=0.001)
-
-
-def test_campo_ausente_retorna_none(parser):
-    dados = parser.extrair("<html><body><p>vazio</p></body></html>")
-    assert dados["p_vp"] is None
-    assert dados["dy_12m"] is None
-    assert dados["volatilidade_12m"] is None
-
-
-def test_todas_as_chaves_presentes(parser):
-    dados = parser.extrair(FIXTURE)
-    assert set(dados.keys()) == {
-        "dy_atual", "dy_12m", "p_vp", "vacancia_fisica", "vacancia_financeira",
-        "liquidez_diaria", "volatilidade_12m", "patrimonio_liquido", "num_cotistas",
+def test_extrair_fundamentais_retorna_todas_as_chaves(parser):
+    d = parser.extrair_fundamentais(FIXTURE)
+    assert set(d.keys()) == {
+        "dy_12m", "p_vp", "liquidez_diaria", "num_cotistas",
+        "patrimonio_liquido", "dy_atual",
     }
+
+
+def test_extrair_vacancia_pagina_real(parser):
+    d = parser.extrair_vacancia(FIXTURE)
+    # HGLG11 exibe VACÂNCIA 0,000% (0% — fundo totalmente locado); ignora o widget '-%'.
+    assert d["vacancia_fisica"] == pytest.approx(0.0)
+    assert d["vacancia_financeira"] is None
+
+
+def test_pagina_sem_dados_retorna_none(parser):
+    html = "<html><body><p>nada útil aqui</p></body></html>"
+    fund = parser.extrair_fundamentais(html)
+    assert fund["p_vp"] is None
+    assert fund["dy_12m"] is None
+    assert fund["patrimonio_liquido"] is None
+    assert fund["dy_atual"] is None
+    vac = parser.extrair_vacancia(html)
+    assert vac["vacancia_fisica"] is None
+    assert vac["vacancia_financeira"] is None
