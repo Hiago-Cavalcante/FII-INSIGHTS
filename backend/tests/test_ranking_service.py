@@ -84,3 +84,29 @@ def test_montar_ranking_aceita_pesos_de_preset():
     itens = montar_ranking(db, PESOS_POR_PERFIL["conservador"])
     assert len(itens) == 3
     assert all(0 <= i.score <= 100 for i in itens)
+
+
+def test_montar_ranking_coorte_vazia_retorna_lista_vazia():
+    db = _session()
+    assert montar_ranking(db, PESOS_DEFAULT) == []
+
+
+def test_montar_ranking_fundo_sem_indicadores_pontua_zero_e_evitar():
+    db = _session()
+    fundo = Fundo(ticker="ZZZZ11", nome="Fundo Z", segmento=None)
+    db.add(fundo)
+    db.flush()
+    db.add(
+        Indicador(
+            fundo_id=fundo.id,
+            data_referencia=date(2026, 5, 1),
+            dy_atual=None, dy_12m=None, p_vp=None,
+            vacancia_fisica=None, vacancia_financeira=None,
+            liquidez_diaria=None, volatilidade_12m=None,
+            patrimonio_liquido=None, num_cotistas=None,
+        )
+    )
+    db.commit()
+    item = montar_ranking(db, PESOS_DEFAULT)[0]
+    assert item.score == 0.0
+    assert item.classificacao == "Evitar"

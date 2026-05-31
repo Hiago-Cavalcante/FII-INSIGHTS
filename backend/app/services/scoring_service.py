@@ -168,7 +168,7 @@ def classificar_score(score: float) -> str:
     return "Evitar"
 
 
-def _calcular_pontuacoes(
+def calcular_pontuacoes(
     ind: Indicador,
     fundo: Fundo,
     todos_pl: list[float],
@@ -250,7 +250,7 @@ class ScoringService:
                 sem_dados += 1
                 continue
             try:
-                pontuacoes = _calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
+                pontuacoes = calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
                 score = calcular_score_com_pesos(pontuacoes, self._pesos)
                 classificacao = classificar_score(score)
                 sh = ScoringHistorico(

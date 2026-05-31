@@ -7,10 +7,14 @@ from sqlalchemy.orm import Session
 from app.models.indicador import Indicador
 from app.repositories.indicador_repository import IndicadorRepository
 from app.services.scoring_service import (
-    _calcular_pontuacoes,
+    calcular_pontuacoes,
     calcular_score_com_pesos,
     classificar_score,
 )
+
+_MILHAO = 1_000_000      # liquidez_diaria: R$ -> R$ milhões
+_BILHAO = 1_000_000_000  # patrimonio_liquido: R$ -> R$ bilhões
+_MILHAR = 1_000          # num_cotistas: unidades -> milhares
 
 
 @dataclass
@@ -45,14 +49,14 @@ def _converter_display(ind: Indicador) -> dict[str, float | None]:
         "p_vp": round(ind.p_vp, 2) if ind.p_vp is not None else None,
         "vacancia_fisica": _pct(ind.vacancia_fisica),
         "vacancia_financeira": _pct(ind.vacancia_financeira),
-        "liquidez_diaria": round(ind.liquidez_diaria / 1e6, 2)
+        "liquidez_diaria": round(ind.liquidez_diaria / _MILHAO, 2)
         if ind.liquidez_diaria is not None
         else None,
         "volatilidade_12m": _pct(ind.volatilidade_12m),
-        "patrimonio_liquido": round(ind.patrimonio_liquido / 1e9, 2)
+        "patrimonio_liquido": round(ind.patrimonio_liquido / _BILHAO, 2)
         if ind.patrimonio_liquido is not None
         else None,
-        "num_cotistas": round(ind.num_cotistas / 1000, 1)
+        "num_cotistas": round(ind.num_cotistas / _MILHAR, 1)
         if ind.num_cotistas is not None
         else None,
     }
@@ -71,7 +75,7 @@ def montar_ranking(db: Session, pesos: dict[str, float]) -> list[RankingItem]:
     itens: list[RankingItem] = []
     for ind in indicadores:
         fundo = ind.fundo
-        pontuacoes = _calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
+        pontuacoes = calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
         score = calcular_score_com_pesos(pontuacoes, pesos)
         itens.append(
             RankingItem(

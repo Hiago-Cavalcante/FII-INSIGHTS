@@ -1,7 +1,7 @@
 from datetime import date
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.fundo import Fundo
 from app.models.indicador import Indicador
@@ -69,6 +69,7 @@ class IndicadorRepository:
         )
         stmt = (
             select(Indicador)
+            .options(joinedload(Indicador.fundo))
             .join(
                 subq,
                 (Indicador.fundo_id == subq.c.fundo_id)
