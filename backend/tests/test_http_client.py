@@ -4,7 +4,12 @@ import httpx
 import pytest
 import respx
 
-from app.utils.http_client import criar_cliente_http, fetch_com_retry
+from app.utils.http_client import (
+    criar_cliente_http,
+    criar_cliente_status_invest,
+    fetch_com_retry,
+    fetch_json_com_retry,
+)
 
 
 def test_fetch_retorna_html_em_sucesso():
@@ -53,3 +58,28 @@ def test_fetch_nao_retry_em_404():
                 with pytest.raises(httpx.HTTPStatusError):
                     fetch_com_retry(client, "https://exemplo.com/fii")
     mock_sleep.assert_not_called()
+
+
+def test_fetch_json_retorna_dict_em_sucesso():
+    with respx.mock:
+        respx.get("https://exemplo.com/api").mock(
+            return_value=httpx.Response(200, json={"a": 1, "b": [2, 3]})
+        )
+        with criar_cliente_status_invest() as client:
+            resultado = fetch_json_com_retry(client, "https://exemplo.com/api")
+    assert resultado == {"a": 1, "b": [2, 3]}
+
+
+def test_fetch_json_retry_em_503():
+    with respx.mock:
+        respx.get("https://exemplo.com/api").mock(
+            side_effect=[
+                httpx.Response(503, text="Service Unavailable"),
+                httpx.Response(200, json=[{"ticker": "XPLG11"}]),
+            ]
+        )
+        with patch("app.utils.http_client.time.sleep") as mock_sleep:
+            with criar_cliente_status_invest() as client:
+                resultado = fetch_json_com_retry(client, "https://exemplo.com/api")
+    assert resultado == [{"ticker": "XPLG11"}]
+    mock_sleep.assert_called_once_with(1)
