@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.indicador import Indicador
 from app.repositories.indicador_repository import IndicadorRepository
 from app.services.scoring_service import (
+    Classificacao,
     calcular_pontuacoes,
     calcular_score_com_pesos,
     classificar_score,
@@ -23,7 +24,7 @@ class RankingItem:
     nome: str | None
     segmento: str | None
     score: float
-    classificacao: str
+    classificacao: Classificacao
     # Indicadores em unidade de display:
     dy_atual: float | None
     dy_12m: float | None

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Literal
 
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,8 @@ from app.repositories.fundo_repository import FundoRepository
 from app.repositories.indicador_repository import IndicadorRepository
 
 logger = logging.getLogger(__name__)
+
+Classificacao = Literal["Excelente", "Bom", "Regular", "Evitar"]
 
 PESOS_DEFAULT: dict[str, float] = {
     "dy_atual": 0.20,
@@ -158,7 +161,7 @@ def pontuar_segmento(segmento: str | None) -> int | None:
     return _SEGMENTO_SCORES.get(segmento, 3)
 
 
-def classificar_score(score: float) -> str:
+def classificar_score(score: float) -> Classificacao:
     if score >= 80:
         return "Excelente"
     if score >= 60:

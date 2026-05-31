@@ -18,7 +18,7 @@ class RankingItemOut(BaseModel):
     nome: str | None
     segmento: str | None
     score: float
-    classificacao: str
+    classificacao: Literal["Excelente", "Bom", "Regular", "Evitar"]
     dy_atual: float | None
     dy_12m: float | None
     p_vp: float | None
