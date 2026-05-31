@@ -973,3 +973,22 @@ git commit -m "feat(coleta): saneamento completo — 10 indicadores reais e re-s
 - TDD com fixtures reais → fixtures nas Tasks 2 e 5; unidades determinísticas nas Tasks 3 e 4. ✓
 - Fora de escopo (K-Means 5 features, testes de scoring, frontend) → não há tasks para eles. ✓
 - Consistência de tipos: `parse_serie_precos`/`parse_screener`/`normalizar_screener_item`/`calcular_dy_atual`/`calcular_volatilidade_anualizada`/`StatusInvestClient`/`extrair_vacancia` usados com as mesmas assinaturas em todas as tasks. ✓
+
+---
+
+## Revisão durante a execução (2026-05-31)
+
+Descobertas que alteraram o plano original e como foram resolvidas:
+
+1. **Screener não cobre os 50 numa chamada.** `advancedsearchresult` ignora filtros e devolve só os 100 primeiros alfabéticos. Solução (decisão do usuário: **híbrido**): `buscar_screener()` une o alfabético-100 com a paginação de `advancedsearchresultpaginated` (`totalResults: 602`, 20/página) deduplicando por ticker (~601 FIIs, cobre ~49/50). Para os tickers que ainda faltam, fallback per-ticker pela página HTML.
+2. **Fallback + vacância via HTML.** Adicionado `StatusInvestClient.buscar_pagina_html(ticker)` e `StatusInvestParser.extrair_fundamentais()` (fallback) + `extrair_vacancia()`. **Patrimônio** vem do bloco **JSON-LD** embutido (`"Patrimônio líquido"…"value":N`); **dy_atual** = último rendimento × 12 / valor atual; **vacância** do `<small class="label">VACÂNCIA</small>` (ignora o widget `-%`).
+3. **Context-manager** adicionado ao `StatusInvestClient` (fecha o pool httpx).
+4. **`dy_atual` com rendimento R$0** → 0.0 (yield real 0%), não `None`.
+
+### Resultado da coleta real (2026-05-31)
+49/50 coletados. Cobertura no indicador mais recente: dy_atual 96%, dy_12m 98%, p_vp 96%, liquidez 94%, patrimônio 98%, cotistas 98%, volatilidade 94%, vacância física (tijolo) 22/24=92%. **DoD ≥90% atingido.**
+
+### Limitações documentadas (trabalho futuro)
+- **MALL11** (1/50): sem dados no Status Invest hoje (`tickerprice` vazio, página stub) — provável renomeação/fusão.
+- **Vacância financeira** 0/50: a página do Status Invest expõe uma única "Vacância" (mapeada para física), sem split física/financeira no HTML estático.
+- **Clustering degenerado** (3/4 clusters viram "Papel Agressivo"; sem `silhouette.png`): endereçado na **Sprint 06** (5ª feature = volatilidade + heurística + silhueta).
