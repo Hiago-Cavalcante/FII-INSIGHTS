@@ -5,6 +5,7 @@ import { ScoreBarChart } from "@/components/charts/ScoreBarChart";
 import { ProgressCircle } from "@/components/ProgressCircle";
 import { Divider } from "@/components/ui/Divider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
 import type { Classificacao } from "@/types/domain";
 
 const ROTULO_PERFIL = {
@@ -31,14 +32,16 @@ const cardBase =
   "relative w-full rounded-lg border p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800";
 
 export function DashboardPage() {
-  const { scoreMedio, totalFiis, topFiis, distribuicao } = useDashboard();
+  const { scoreMedio, totalFiis, topFiis, distribuicao, isLoading, isError } = useDashboard();
   const perfil = usePerfilStore((s) => s.tipo);
 
   const topClassificacao = (
     Object.entries(distribuicao) as [Classificacao, number][]
   ).sort((a, b) => b[1] - a[1])[0];
 
-  const isLoading = false; // preparado para TanStack Query
+  if (isError) {
+    return <ErrorState message="Não foi possível carregar o dashboard." />;
+  }
 
   return (
     <div>
@@ -167,10 +170,10 @@ export function DashboardPage() {
             <FiiCard
               key={fii.ticker}
               ticker={fii.ticker}
-              nome={fii.nome}
+              nome={fii.nome ?? fii.ticker}
               segmento={fii.segmento}
               score={fii.score}
-              classificacao={fii.classificacao}
+              classificacao={fii.classificacao as Classificacao}
             />
           ))}
         </div>

@@ -1,44 +1,50 @@
 import { useMemo } from "react";
-import { FUNDOS_MOCK } from "@/mocks";
-import { calcularScore, calcularScoreComPesos, classificar } from "@/lib/scoring";
+import { useQuery } from "@tanstack/react-query";
+import { getRanking, simularRanking } from "@/api/endpoints/ranking";
 import { usePerfilStore } from "@/stores/perfilStore";
-import type { FundoRanqueado, Classificacao } from "@/types/domain";
+import type { RankingItem, PesosPayload } from "@/types/ranking";
+import type { Classificacao } from "@/types/domain";
 
 interface DashboardData {
   scoreMedio: number;
   totalFiis: number;
-  topFiis: FundoRanqueado[];
+  topFiis: RankingItem[];
   distribuicao: Record<Classificacao, number>;
+  isLoading: boolean;
+  isError: boolean;
 }
 
 export function useDashboard(): DashboardData {
-  const perfil = usePerfilStore((s) => s.tipo);
+  const tipo = usePerfilStore((s) => s.tipo);
   const pesosCustom = usePerfilStore((s) => s.pesosCustom);
 
+  const query = useQuery({
+    queryKey: ["ranking", pesosCustom ?? tipo],
+    queryFn: () =>
+      pesosCustom
+        ? simularRanking(pesosCustom as unknown as PesosPayload)
+        : getRanking(tipo),
+  });
+
   return useMemo(() => {
-    const ranqueados: FundoRanqueado[] = FUNDOS_MOCK.map((f) => {
-      const score = pesosCustom
-        ? calcularScoreComPesos(f, pesosCustom)
-        : calcularScore(f, perfil);
-      return { ...f, score, classificacao: classificar(score) };
-    }).sort((a, b) => b.score - a.score);
-
-    const scoreMedio =
-      ranqueados.reduce((acc, f) => acc + f.score, 0) / ranqueados.length;
-
+    const lista = query.data ?? [];
     const distribuicao: Record<Classificacao, number> = {
-      Excelente: 0,
-      Bom: 0,
-      Regular: 0,
-      Evitar: 0,
+      Excelente: 0, Bom: 0, Regular: 0, Evitar: 0,
     };
-    ranqueados.forEach((f) => distribuicao[f.classificacao]++);
-
+    lista.forEach((f) => {
+      distribuicao[f.classificacao as Classificacao]++;
+    });
+    const scoreMedio =
+      lista.length > 0
+        ? Math.round((lista.reduce((a, f) => a + f.score, 0) / lista.length) * 10) / 10
+        : 0;
     return {
-      scoreMedio: Math.round(scoreMedio * 10) / 10,
-      totalFiis: ranqueados.length,
-      topFiis: ranqueados.slice(0, 6),
+      scoreMedio,
+      totalFiis: lista.length,
+      topFiis: lista.slice(0, 6),
       distribuicao,
+      isLoading: query.isLoading,
+      isError: query.isError,
     };
-  }, [perfil, pesosCustom]);
+  }, [query.data, query.isLoading, query.isError]);
 }
