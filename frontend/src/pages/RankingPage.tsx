@@ -20,7 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Classificacao, FundoRanqueado } from "@/types/domain";
+import type { Classificacao } from "@/types/domain";
+import type { RankingItem } from "@/types/ranking";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import {
   Search,
@@ -60,7 +63,7 @@ function fmt(v: number | null, suffix = "", decimals = 1): string {
 // Column helper
 // ---------------------------------------------------------------------------
 
-const columnHelper = createColumnHelper<FundoRanqueado>();
+const columnHelper = createColumnHelper<RankingItem>();
 
 // ---------------------------------------------------------------------------
 // SortIcon — ícone de ordenação no cabeçalho
@@ -138,7 +141,7 @@ const columns = [
   // Classificação
   columnHelper.accessor("classificacao", {
     header: "Classificação",
-    cell: ({ getValue }) => <ClassificacaoBadge classificacao={getValue()} />,
+    cell: ({ getValue }) => <ClassificacaoBadge classificacao={getValue() as Classificacao} />,
   }),
 
   // DY Atual
@@ -193,7 +196,7 @@ const columns = [
 // ---------------------------------------------------------------------------
 
 export function RankingPage() {
-  const { fundos, filtro, setFiltro, busca, setBusca } = useRanking();
+  const { fundos, filtro, setFiltro, busca, setBusca, isLoading, isError } = useRanking();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "score", desc: true },
@@ -232,6 +235,19 @@ export function RankingPage() {
   const firstRow = totalRows === 0 ? 0 : pageIndex * pageSize + 1;
   const lastRow = Math.min((pageIndex + 1) * pageSize, totalRows);
   const pageCount = table.getPageCount();
+
+  if (isError) {
+    return <ErrorState message="Não foi possível carregar o ranking." />;
+  }
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div>
