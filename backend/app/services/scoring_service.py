@@ -26,6 +26,36 @@ PESOS_DEFAULT: dict[str, float] = {
     "segmento": 0.05,
 }
 
+# Presets canônicos por perfil (chaves = indicadores do modelo; soma = 1.0).
+# moderado == PESOS_DEFAULT.
+PESOS_POR_PERFIL: dict[str, dict[str, float]] = {
+    "conservador": {
+        "dy_atual": 0.10,
+        "dy_12m": 0.15,
+        "p_vp": 0.10,
+        "vacancia_fisica": 0.15,
+        "vacancia_financeira": 0.15,
+        "liquidez_diaria": 0.10,
+        "volatilidade_12m": 0.15,
+        "patrimonio_liquido": 0.05,
+        "num_cotistas": 0.05,
+        "segmento": 0.00,
+    },
+    "moderado": PESOS_DEFAULT,
+    "arrojado": {
+        "dy_atual": 0.25,
+        "dy_12m": 0.05,
+        "p_vp": 0.20,
+        "vacancia_fisica": 0.10,
+        "vacancia_financeira": 0.05,
+        "liquidez_diaria": 0.10,
+        "volatilidade_12m": 0.05,
+        "patrimonio_liquido": 0.05,
+        "num_cotistas": 0.05,
+        "segmento": 0.10,
+    },
+}
+
 DIMENSOES: dict[str, list[str]] = {
     "Rentabilidade": ["dy_atual", "dy_12m"],
     "Valuation": ["p_vp"],
