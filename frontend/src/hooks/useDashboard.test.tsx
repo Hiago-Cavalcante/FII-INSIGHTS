@@ -4,10 +4,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useDashboard } from "./useDashboard";
 import * as rankingApi from "@/api/endpoints/ranking";
+import type { RankingItem } from "@/types/ranking";
 
 vi.mock("@/api/endpoints/ranking");
 
-const mk = (ticker: string, score: number, cls: string) => ({
+const mk = (
+  ticker: string,
+  score: number,
+  cls: RankingItem["classificacao"],
+): RankingItem => ({
   ticker, nome: ticker, segmento: "Logística", score, classificacao: cls,
   dy_atual: 10, dy_12m: 10, p_vp: 0.9,
   vacancia_fisica: null, vacancia_financeira: null,

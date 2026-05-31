@@ -141,7 +141,7 @@ const columns = [
   // Classificação
   columnHelper.accessor("classificacao", {
     header: "Classificação",
-    cell: ({ getValue }) => <ClassificacaoBadge classificacao={getValue() as Classificacao} />,
+    cell: ({ getValue }) => <ClassificacaoBadge classificacao={getValue()} />,
   }),
 
   // DY Atual

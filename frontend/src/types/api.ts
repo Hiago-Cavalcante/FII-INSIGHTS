@@ -363,8 +363,11 @@ export interface components {
             segmento: string | null;
             /** Score */
             score: number;
-            /** Classificacao */
-            classificacao: string;
+            /**
+             * Classificacao
+             * @enum {string}
+             */
+            classificacao: "Excelente" | "Bom" | "Regular" | "Evitar";
             /** Dy Atual */
             dy_atual: number | null;
             /** Dy 12M */

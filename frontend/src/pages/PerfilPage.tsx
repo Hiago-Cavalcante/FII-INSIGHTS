@@ -268,7 +268,7 @@ function PesosCustomizadosForm() {
               <div key={f.ticker}>
                 <span className="text-xs text-gray-400">{i + 1}. </span>
                 <span className="text-sm font-mono font-semibold text-gray-900 dark:text-gray-50">{f.ticker}</span>
-                <span className={cn("ml-1 text-sm tabular-nums font-medium", SCORE_COLOR[f.classificacao as Classificacao])}>
+                <span className={cn("ml-1 text-sm tabular-nums font-medium", SCORE_COLOR[f.classificacao])}>
                   {f.score.toFixed(1)}
                 </span>
               </div>

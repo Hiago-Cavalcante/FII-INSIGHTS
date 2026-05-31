@@ -127,7 +127,7 @@ export function DashboardPage() {
               </dd>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {topClassificacao[1]} de {totalFiis} FIIs (
-                {((topClassificacao[1] / totalFiis) * 100).toFixed(0)}% do portfólio)
+                {totalFiis > 0 ? ((topClassificacao[1] / totalFiis) * 100).toFixed(0) : "0"}% do portfólio)
               </p>
               <div className="mt-4 flex gap-6 text-sm">
                 <div>
@@ -173,7 +173,7 @@ export function DashboardPage() {
               nome={fii.nome ?? fii.ticker}
               segmento={fii.segmento}
               score={fii.score}
-              classificacao={fii.classificacao as Classificacao}
+              classificacao={fii.classificacao}
             />
           ))}
         </div>

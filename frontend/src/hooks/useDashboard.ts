@@ -30,7 +30,7 @@ export function useDashboard(): DashboardData {
     };
     lista.forEach((f) => {
       if (f.classificacao in distribuicao) {
-        distribuicao[f.classificacao as Classificacao]++;
+        distribuicao[f.classificacao]++;
       }
     });
     const scoreMedio =
