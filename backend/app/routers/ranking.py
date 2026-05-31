@@ -46,11 +46,8 @@ class PesosIn(BaseModel):
 
     @model_validator(mode="after")
     def _soma_um(self) -> PesosIn:
-        soma = (
-            self.dy_atual + self.dy_12m + self.p_vp + self.vacancia_fisica
-            + self.vacancia_financeira + self.liquidez_diaria + self.volatilidade_12m
-            + self.patrimonio_liquido + self.num_cotistas + self.segmento
-        )
+        soma = sum(self.model_dump().values())
+        # tolerância de 1 ponto percentual para arredondamentos de ponto flutuante
         if abs(soma - 1.0) > 0.01:
             raise ValueError(f"A soma dos pesos deve ser 1.0 (atual: {soma:.2f})")
         return self
