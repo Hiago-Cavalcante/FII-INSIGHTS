@@ -18,11 +18,6 @@ logger = logging.getLogger(__name__)
 
 _DELAY = 0.3
 
-# Segmentos de "tijolo" têm vacância; papel/FoF (Recebíveis, Fundo de Fundos) não.
-_SEGMENTOS_TIJOLO = frozenset(
-    {"Logística", "Lajes Corporativas", "Shopping", "Renda Urbana", "Híbrido"}
-)
-
 
 @dataclass
 class ColetaResultado:
@@ -33,7 +28,11 @@ class ColetaResultado:
 
 class ColetaService:
     """Coleta híbrida: screener JSON (fundamentais) + série de preços (volatilidade)
-    + página HTML (vacância dos FIIs de tijolo e fallback dos que faltam no screener).
+    + página HTML como fallback dos tickers que faltam no screener.
+
+    Vacância não é coletada (limitação documentada: o Status Invest não expõe um
+    agregado confiável no HTML). Os campos de vacância ficam nulos e o scoring
+    redistribui o peso da dimensão Risco.
     """
 
     def __init__(self, db: Session, client: StatusInvestClient | None = None) -> None:
@@ -65,18 +64,14 @@ class ColetaService:
                     campos.setdefault("volatilidade_12m", None)
                     logger.warning("Volatilidade indisponível p/ %s: %s", fundo.ticker, e)
 
-                # Página HTML só quando agrega: fallback (fora do screener) ou vacância (tijolo).
-                tijolo = self._eh_tijolo(fundo.segmento)
-                if screener_miss or tijolo:
+                # Fallback pela página HTML só quando o screener não trouxe o ticker.
+                if screener_miss:
                     try:
                         html = self._client.buscar_pagina_html(fundo.ticker)
-                        if screener_miss:
-                            for chave, valor in self._parser.extrair_fundamentais(
-                                html
-                            ).items():
-                                campos.setdefault(chave, valor)
-                        if tijolo:
-                            campos.update(self._parser.extrair_vacancia(html))
+                        for chave, valor in self._parser.extrair_fundamentais(
+                            html
+                        ).items():
+                            campos.setdefault(chave, valor)
                     except Exception as e:
                         logger.warning("Página HTML indisponível p/ %s: %s", fundo.ticker, e)
 
@@ -97,7 +92,3 @@ class ColetaService:
                 logger.warning("Falha em %s: %s", fundo.ticker, e)
 
         return resultado
-
-    @staticmethod
-    def _eh_tijolo(segmento: str | None) -> bool:
-        return segmento in _SEGMENTOS_TIJOLO

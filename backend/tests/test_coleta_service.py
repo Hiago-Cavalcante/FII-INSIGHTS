@@ -1,8 +1,6 @@
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from app.repositories.fundo_repository import FundoRepository
 from app.repositories.indicador_repository import IndicadorRepository
 from app.services.coleta_service import ColetaService
@@ -55,7 +53,7 @@ def test_coletar_salva_screener_e_volatilidade(db_session):
 
     assert resultado.coletados == 1
     assert resultado.falhas == 0
-    assert cliente.paginas_buscadas == []  # papel não busca HTML
+    assert cliente.paginas_buscadas == []  # ticker no screener: não busca HTML
     ind = _ind(db_session, fundo.id)
     assert ind.dy_12m is not None
     assert ind.p_vp is not None
@@ -74,18 +72,6 @@ def test_fallback_html_para_ticker_fora_do_screener(db_session):
     ind = _ind(db_session, fundo.id)
     assert ind.dy_12m is not None  # veio do HTML
     assert ind.patrimonio_liquido is not None
-    assert ind.vacancia_fisica == pytest.approx(0.0379, abs=1e-3)  # tijolo: vacância do HTML
-
-
-def test_vacancia_coletada_para_tijolo(db_session):
-    fundo = FundoRepository(db_session).criar(ticker="HGLG11", segmento="Logística")
-    cliente = FakeClient(screener=[_item("HGLG11")], html=_FIXTURE)
-    with patch("app.services.coleta_service.time.sleep"):
-        ColetaService(db_session, client=cliente).coletar_todos()
-
-    assert "HGLG11" in cliente.paginas_buscadas  # tijolo busca HTML p/ vacância
-    ind = _ind(db_session, fundo.id)
-    assert ind.vacancia_fisica == pytest.approx(0.0379, abs=1e-3)  # média por imóvel
 
 
 def test_delay_aplicado_entre_fundos(db_session):

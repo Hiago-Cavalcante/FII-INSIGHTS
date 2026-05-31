@@ -9,11 +9,14 @@ from app.utils.parsers.status_invest_json import calcular_dy_atual
 
 
 class StatusInvestParser:
-    """Extrai indicadores da PÁGINA HTML do FII no Status Invest.
+    """Extrai indicadores fundamentais da PÁGINA HTML do FII (fallback do screener).
 
-    Fonte de fallback: os fundamentais vêm normalmente do screener JSON; este
-    parser cobre a vacância (sem endpoint JSON) e serve de fallback completo para
-    os poucos tickers que o screener não traz.
+    **Vacância não é extraída.** O Status Invest não expõe um agregado confiável do
+    fundo no HTML estático (o widget agregado mostra '-%') e os valores por imóvel
+    são inconsistentes entre fundos (vacância real em uns, ocupação/ruído em outros —
+    ex.: HSML11 lista "VACÂNCIA 91–98%" por loja). Tratada como limitação de dado /
+    trabalho futuro (ver docs da Sprint 04). vacancia_fisica/financeira ficam nulas e
+    o scoring redistribui o peso da dimensão Risco.
     """
 
     def extrair_fundamentais(self, html: str) -> dict[str, Any]:
@@ -33,22 +36,14 @@ class StatusInvestParser:
             "dy_atual": calcular_dy_atual(ultimo, preco),
         }
 
-    def extrair_vacancia(self, html: str) -> dict[str, Any]:
-        """Vacância física/financeira (fração). Nula em FIIs de papel/FoF."""
-        soup = BeautifulSoup(html, "lxml")
-        return {
-            "vacancia_fisica": self._vacancia(
-                soup, [r"vac[âa]ncia\s+f[íi]sica", r"^vac[âa]ncia$"]
-            ),
-            "vacancia_financeira": self._vacancia(
-                soup, [r"vac[âa]ncia\s+financeira"]
-            ),
-        }
-
     # ── helpers de busca ──────────────────────────────────────────────
 
     def _valor(self, soup: BeautifulSoup, label_regex: str) -> str | None:
-        """Texto do primeiro <strong class="value"> após um rótulo que casa o regex."""
+        """Texto do 1º <strong class="value"> após um rótulo que casa o regex.
+
+        Assume o layout atual do Status Invest (a 1ª ocorrência do rótulo é a
+        relevante; rótulos com tooltips/duplicatas resolvem para o card correto).
+        """
         for node in soup.find_all(string=re.compile(label_regex, re.IGNORECASE)):
             parent = node.parent
             if not isinstance(parent, Tag):
@@ -58,29 +53,6 @@ class StatusInvestParser:
                 texto = strong.get_text(strip=True)
                 if texto:
                     return texto
-        return None
-
-    def _vacancia(self, soup: BeautifulSoup, labels: list[str]) -> float | None:
-        """Vacância do fundo como MÉDIA dos valores que parseiam para um rótulo.
-
-        O Status Invest nem sempre expõe um agregado do fundo no HTML estático
-        (mostra '-%'); quando só há vacância por imóvel, usa-se a média das
-        vacâncias por imóvel como proxy (ignorando widgets sem dado, ex.: '-%').
-        Limitação conhecida: média não ponderada por área/receita.
-        """
-        for label in labels:
-            valores: list[float] = []
-            for node in soup.find_all(string=re.compile(label, re.IGNORECASE)):
-                parent = node.parent
-                if not isinstance(parent, Tag):
-                    continue
-                strong = parent.find_next("strong", class_="value")
-                if isinstance(strong, Tag):
-                    valor = self._pct(strong.get_text(strip=True))
-                    if valor is not None:
-                        valores.append(valor)
-            if valores:
-                return sum(valores) / len(valores)
         return None
 
     @staticmethod

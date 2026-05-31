@@ -33,21 +33,9 @@ def test_extrair_fundamentais_retorna_todas_as_chaves(parser):
     }
 
 
-def test_extrair_vacancia_pagina_real(parser):
-    d = parser.extrair_vacancia(FIXTURE)
-    # Sem agregado do fundo no HTML; usa-se a MÉDIA das vacâncias por imóvel.
-    # HGLG11: imóveis variam (0%, 6,7%, 13,5%, ...) → média ≈ 3,79% (não 0% da 1ª).
-    assert d["vacancia_fisica"] == pytest.approx(0.0379, abs=1e-3)
-    assert d["vacancia_financeira"] is None
-
-
 def test_pagina_sem_dados_retorna_none(parser):
-    html = "<html><body><p>nada útil aqui</p></body></html>"
-    fund = parser.extrair_fundamentais(html)
-    assert fund["p_vp"] is None
-    assert fund["dy_12m"] is None
-    assert fund["patrimonio_liquido"] is None
-    assert fund["dy_atual"] is None
-    vac = parser.extrair_vacancia(html)
-    assert vac["vacancia_fisica"] is None
-    assert vac["vacancia_financeira"] is None
+    d = parser.extrair_fundamentais("<html><body><p>nada útil aqui</p></body></html>")
+    assert d["p_vp"] is None
+    assert d["dy_12m"] is None
+    assert d["patrimonio_liquido"] is None
+    assert d["dy_atual"] is None
