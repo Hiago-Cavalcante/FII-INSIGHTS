@@ -18,6 +18,7 @@ class IndicadorOut(BaseModel):
     vacancia_fisica: float | None
     vacancia_financeira: float | None
     liquidez_diaria: float | None
+    volatilidade_12m: float | None
     patrimonio_liquido: float | None
     num_cotistas: int | None
 

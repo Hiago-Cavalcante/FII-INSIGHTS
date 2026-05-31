@@ -48,3 +48,9 @@ def test_simular_soma_diferente_de_um_retorna_422(client_seeded: TestClient):
     ruins = {**PESOS_OK, "dy_atual": 0.50}  # soma = 1.30
     r = client_seeded.post("/api/v1/ranking/simular", json={"pesos": ruins})
     assert r.status_code == 422
+
+
+def test_detalhe_fundo_inclui_volatilidade(client_seeded: TestClient):
+    r = client_seeded.get("/api/v1/fundos/AAAA11")
+    assert r.status_code == 200
+    assert r.json()["indicador"]["volatilidade_12m"] == 0.085  # cru (este endpoint não converte)

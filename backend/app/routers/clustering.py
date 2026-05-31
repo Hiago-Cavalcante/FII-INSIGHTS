@@ -19,6 +19,7 @@ class ClusterItemOut(BaseModel):
     perfil_risco: str
     descricao: str | None
     dy_medio: float | None
+    volatilidade_media: float | None
     p_vp_medio: float | None
     num_fiis: int
     tickers: list[str]
@@ -48,6 +49,7 @@ def listar_clusters(db: Session = Depends(get_db)) -> list[ClusterItemOut]:
                 perfil_risco=cluster.perfil_risco,
                 descricao=cluster.descricao,
                 dy_medio=cluster.dy_medio,
+                volatilidade_media=cluster.volatilidade_media,
                 p_vp_medio=cluster.p_vp_medio,
                 num_fiis=cluster.num_fiis,
                 tickers=list(tickers),
