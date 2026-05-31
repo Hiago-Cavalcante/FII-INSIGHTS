@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 from sqlalchemy.orm import Session
 
@@ -20,46 +21,43 @@ logger = logging.getLogger(__name__)
 
 _FIGURES_DIR = Path(__file__).parent.parent.parent / "data" / "figures"
 
+# Nomes/perfis atribuídos por rank de risco (volatilidade) crescente.
+_NOMES_POR_RANK: list[tuple[str, str]] = [
+    ("Tijolo Conservador", "conservador"),
+    ("Tijolo Balanceado", "moderado"),
+    ("Híbrido Diversificado", "moderado"),
+    ("Papel Agressivo", "arrojado"),
+]
+
 
 def preparar_features(
     indicadores: list[Indicador],
     fundos: dict[int, Fundo],
 ) -> tuple[np.ndarray, list[int]]:
-    """
-    Extrai 4 features: [dy_12m, p_vp, vacancia_media, log10(liquidez_diaria)]
-    Exclui fundos sem dy_12m, p_vp ou liquidez_diaria.
-    Imputa vacancia_media nula com mediana dos presentes.
+    """Extrai 4 features: [dy_12m, p_vp, log10(liquidez_diaria), volatilidade_12m].
+
+    Obrigatórios: dy_12m, p_vp, liquidez_diaria > 0. Volatilidade ausente é
+    imputada com a mediana dos presentes (mantém a cobertura de fundos).
     """
     candidatos = [
-        ind for ind in indicadores
-        if ind.dy_12m is not None and ind.p_vp is not None
-        and ind.liquidez_diaria is not None and ind.liquidez_diaria > 0
+        ind
+        for ind in indicadores
+        if ind.dy_12m is not None
+        and ind.p_vp is not None
+        and ind.liquidez_diaria is not None
+        and ind.liquidez_diaria > 0
     ]
 
-    vacancias = []
-    for ind in candidatos:
-        v_f = ind.vacancia_fisica or 0.0
-        v_fin = ind.vacancia_financeira or 0.0
-        if ind.vacancia_fisica is not None or ind.vacancia_financeira is not None:
-            vacancias.append((v_f + v_fin) / 2)
-    vacancia_mediana = float(np.median(vacancias)) if vacancias else 0.0
+    vols = [ind.volatilidade_12m for ind in candidatos if ind.volatilidade_12m is not None]
+    vol_mediana = float(np.median(vols)) if vols else 0.0
 
     rows: list[list[float]] = []
     fundo_ids: list[int] = []
-
     for ind in candidatos:
-        v_f = ind.vacancia_fisica or 0.0
-        v_fin = ind.vacancia_financeira or 0.0
-        if ind.vacancia_fisica is not None or ind.vacancia_financeira is not None:
-            vacancia_media = (v_f + v_fin) / 2
-        else:
-            vacancia_media = vacancia_mediana
-
-        dy12m = ind.dy_12m
-        pvp = ind.p_vp
-        liq = ind.liquidez_diaria
+        vol = ind.volatilidade_12m if ind.volatilidade_12m is not None else vol_mediana
+        dy12m, pvp, liq = ind.dy_12m, ind.p_vp, ind.liquidez_diaria
         assert dy12m is not None and pvp is not None and liq is not None
-        rows.append([dy12m, pvp, vacancia_media, math.log10(liq)])
+        rows.append([dy12m, pvp, math.log10(liq), vol])
         fundo_ids.append(ind.fundo_id)
 
     if not rows:
@@ -68,20 +66,38 @@ def preparar_features(
     return np.array(rows, dtype=float), fundo_ids
 
 
-def interpretar_cluster(
-    dy_medio: float,
-    p_vp_medio: float,
-    vacancia_media: float,
-    log_liq_medio: float,
-) -> tuple[str, str]:
-    """Heurística para nomear e classificar perfil de risco de um cluster."""
-    if dy_medio > 0.11 or (dy_medio > 0.09 and vacancia_media > 0.10):
-        return "Papel Agressivo", "arrojado"
-    if dy_medio < 0.08 and vacancia_media < 0.08:
-        return "Tijolo Conservador", "conservador"
-    if p_vp_medio < 0.95 and dy_medio >= 0.08:
-        return "Tijolo Balanceado", "moderado"
-    return "Híbrido Diversificado", "moderado"
+def nomear_clusters_por_risco(
+    centroides: list[dict[str, float]],
+) -> list[tuple[str, str]]:
+    """Nomeia clusters ranqueando-os por risco (volatilidade asc, desempate DY asc).
+
+    `centroides[i]` deve ter `volatilidade_media` e `dy_medio`. Retorna a lista
+    alinhada ao índice do cluster com (nome, perfil_risco). Garante nomes
+    distintos para k <= 4 (acima disso o último nome se repete).
+    """
+    ordem = sorted(
+        range(len(centroides)),
+        key=lambda i: (centroides[i]["volatilidade_media"], centroides[i]["dy_medio"]),
+    )
+    resultado: list[tuple[str, str]] = [("", "")] * len(centroides)
+    for rank, k_idx in enumerate(ordem):
+        resultado[k_idx] = _NOMES_POR_RANK[min(rank, len(_NOMES_POR_RANK) - 1)]
+    return resultado
+
+
+def calcular_silhuetas(
+    x_scaled: np.ndarray,
+    ks: range = range(2, 9),
+) -> dict[int, float]:
+    """silhouette_score médio para cada k válido (2 <= k <= n-1)."""
+    n = len(x_scaled)
+    scores: dict[int, float] = {}
+    for k in ks:
+        if k < 2 or k > n - 1:
+            continue
+        labels = KMeans(n_clusters=k, random_state=42, n_init=10).fit_predict(x_scaled)
+        scores[k] = float(silhouette_score(x_scaled, labels))
+    return scores
 
 
 class ClusteringService:
@@ -95,86 +111,93 @@ class ClusteringService:
         indicadores = self._ind_repo.listar_mais_recentes_todos()
         fundos = {f.id: f for f in self._fundos_repo.listar_todos()}
 
-        X, fundo_ids = preparar_features(indicadores, fundos)
+        x, fundo_ids = preparar_features(indicadores, fundos)
 
         if len(fundo_ids) < self._k:
             logger.warning(
-                "Fundos insuficientes para %d clusters (%d disponíveis)", self._k, len(fundo_ids)
+                "Fundos insuficientes para %d clusters (%d disponíveis)",
+                self._k,
+                len(fundo_ids),
             )
             return {"clusters_criados": 0, "fundos_clusterizados": 0}
 
         scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+        x_scaled = scaler.fit_transform(x)
 
         kmeans = KMeans(n_clusters=self._k, random_state=42, n_init=10)
-        labels = kmeans.fit_predict(X_scaled)
-
+        labels = kmeans.fit_predict(x_scaled)
         centroids_orig = scaler.inverse_transform(kmeans.cluster_centers_)
+
+        centroides = [
+            {
+                "dy_medio": float(centroids_orig[i, 0]),
+                "p_vp_medio": float(centroids_orig[i, 1]),
+                "log_liq_medio": float(centroids_orig[i, 2]),
+                "volatilidade_media": float(centroids_orig[i, 3]),
+            }
+            for i in range(self._k)
+        ]
+        nomes = nomear_clusters_por_risco(centroides)
 
         self._db.query(FundoCluster).delete()
         self._db.query(Cluster).delete()
         self._db.flush()
 
         hoje = date.today()
-
         for k_idx in range(self._k):
-            mask = labels == k_idx
-            membros_idx = [i for i, m in enumerate(mask) if m]
-
-            dy_medio = float(centroids_orig[k_idx, 0])
-            p_vp_medio = float(centroids_orig[k_idx, 1])
-            vacancia_media = float(centroids_orig[k_idx, 2])
-            log_liq = float(centroids_orig[k_idx, 3])
-
-            nome, perfil = interpretar_cluster(dy_medio, p_vp_medio, vacancia_media, log_liq)
+            c = centroides[k_idx]
+            nome, perfil = nomes[k_idx]
+            membros_idx = [i for i, m in enumerate(labels == k_idx) if m]
 
             cluster = Cluster(
                 nome_interpretado=nome,
                 perfil_risco=perfil,
                 descricao=(
-                    f"DY médio: {dy_medio:.1%}, P/VP médio: {p_vp_medio:.2f}, "
-                    f"Vacância média: {vacancia_media:.1%}"
+                    f"DY médio: {c['dy_medio']:.1%}, P/VP médio: {c['p_vp_medio']:.2f}, "
+                    f"Volatilidade média: {c['volatilidade_media']:.1%}"
                 ),
-                dy_medio=dy_medio,
-                volatilidade_media=None,
-                p_vp_medio=p_vp_medio,
+                dy_medio=c["dy_medio"],
+                volatilidade_media=c["volatilidade_media"],
+                p_vp_medio=c["p_vp_medio"],
                 num_fiis=len(membros_idx),
             )
             self._db.add(cluster)
             self._db.flush()
 
             for idx in membros_idx:
-                fc = FundoCluster(
-                    fundo_id=fundo_ids[idx],
-                    cluster_id=cluster.id,
-                    data_atribuicao=hoje,
+                self._db.add(
+                    FundoCluster(
+                        fundo_id=fundo_ids[idx],
+                        cluster_id=cluster.id,
+                        data_atribuicao=hoje,
+                    )
                 )
-                self._db.add(fc)
-                ticker = fundos.get(fundo_ids[idx])
-                logger.info("  %s → %s", ticker.ticker if ticker else fundo_ids[idx], nome)
+            logger.info("Cluster '%s' (%s): %d FIIs", nome, perfil, len(membros_idx))
 
         self._db.commit()
         logger.info("Clustering: %d clusters, %d fundos", self._k, len(fundo_ids))
 
-        self._salvar_figuras(X_scaled, labels, kmeans)
+        self._salvar_figuras(x_scaled, labels)
 
         return {"clusters_criados": self._k, "fundos_clusterizados": len(fundo_ids)}
 
-    def _salvar_figuras(self, X_scaled: np.ndarray, labels: np.ndarray, kmeans: KMeans) -> None:
+    def _salvar_figuras(self, x_scaled: np.ndarray, labels: np.ndarray) -> None:
         try:
             import matplotlib
+
             matplotlib.use("Agg")
             import matplotlib.pyplot as plt
 
             _FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+            ks_validos = [k for k in range(2, 9) if k <= len(x_scaled) - 1]
 
-            ks = range(2, 9)
+            # Cotovelo (inércia × k)
             inercias = [
-                KMeans(n_clusters=k, random_state=42, n_init=10).fit(X_scaled).inertia_
-                for k in ks
+                KMeans(n_clusters=k, random_state=42, n_init=10).fit(x_scaled).inertia_
+                for k in ks_validos
             ]
             fig, ax = plt.subplots()
-            ax.plot(list(ks), inercias, "o-")
+            ax.plot(ks_validos, inercias, "o-")
             ax.set_xlabel("k")
             ax.set_ylabel("Inércia")
             ax.set_title("Método do Cotovelo")
@@ -183,13 +206,29 @@ class ClusteringService:
             fig.savefig(_FIGURES_DIR / "cotovelo.png", dpi=100, bbox_inches="tight")
             plt.close(fig)
 
+            # Silhueta (silhouette médio × k)
+            sils = calcular_silhuetas(x_scaled, range(2, 9))
+            if sils:
+                fig, ax = plt.subplots()
+                ax.plot(list(sils.keys()), list(sils.values()), "o-")
+                ax.set_xlabel("k")
+                ax.set_ylabel("Silhouette médio")
+                ax.set_title("Análise de Silhueta")
+                ax.axvline(
+                    x=self._k, color="red", linestyle="--", label=f"k={self._k} escolhido"
+                )
+                ax.legend()
+                fig.savefig(_FIGURES_DIR / "silhouette.png", dpi=100, bbox_inches="tight")
+                plt.close(fig)
+
+            # Dispersão DY × Volatilidade (padronizados) colorida por cluster
             fig, ax = plt.subplots()
             for k_idx in range(self._k):
                 mask = labels == k_idx
-                ax.scatter(X_scaled[mask, 0], X_scaled[mask, 1], label=f"Cluster {k_idx}", alpha=0.7)
+                ax.scatter(x_scaled[mask, 0], x_scaled[mask, 3], label=f"Cluster {k_idx}", alpha=0.7)
             ax.set_xlabel("DY 12M (padronizado)")
-            ax.set_ylabel("P/VP (padronizado)")
-            ax.set_title("Clusters FII — DY vs P/VP")
+            ax.set_ylabel("Volatilidade 12M (padronizada)")
+            ax.set_title("Clusters FII — DY × Volatilidade")
             ax.legend()
             fig.savefig(_FIGURES_DIR / "clusters_scatter.png", dpi=100, bbox_inches="tight")
             plt.close(fig)
