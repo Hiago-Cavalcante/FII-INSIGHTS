@@ -32,7 +32,9 @@ export function useDashboard(): DashboardData {
       Excelente: 0, Bom: 0, Regular: 0, Evitar: 0,
     };
     lista.forEach((f) => {
-      distribuicao[f.classificacao as Classificacao]++;
+      if (f.classificacao in distribuicao) {
+        distribuicao[f.classificacao as Classificacao]++;
+      }
     });
     const scoreMedio =
       lista.length > 0

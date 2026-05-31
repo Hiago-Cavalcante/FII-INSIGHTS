@@ -39,7 +39,7 @@ export function DashboardPage() {
     Object.entries(distribuicao) as [Classificacao, number][]
   ).sort((a, b) => b[1] - a[1])[0];
 
-  if (isError) {
+  if (isError && !isLoading) {
     return <ErrorState message="Não foi possível carregar o dashboard." />;
   }
 
