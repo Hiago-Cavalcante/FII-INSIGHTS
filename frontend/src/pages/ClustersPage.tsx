@@ -14,6 +14,7 @@ const CORES_PERFIL: Record<string, { card: string; dot: string }> = {
   arrojado:    { card: "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20", dot: "bg-amber-500" },
 };
 
+// O endpoint /clusters retorna frações cruas (ao contrário de /ranking); ×100 → percentual.
 function fmtPct(v: number | null): string {
   return v !== null ? `${(v * 100).toFixed(1)}%` : "—";
 }
@@ -21,7 +22,7 @@ function fmtPct(v: number | null): string {
 export function ClustersPage() {
   const { clusters, isLoading, isError } = useClusters();
 
-  if (isError) return <ErrorState message="Não foi possível carregar os clusters." />;
+  if (isError && !isLoading) return <ErrorState message="Não foi possível carregar os clusters." />;
 
   return (
     <div>
