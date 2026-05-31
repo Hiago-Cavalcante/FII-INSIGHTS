@@ -981,14 +981,15 @@ git commit -m "feat(coleta): saneamento completo — 10 indicadores reais e re-s
 Descobertas que alteraram o plano original e como foram resolvidas:
 
 1. **Screener não cobre os 50 numa chamada.** `advancedsearchresult` ignora filtros e devolve só os 100 primeiros alfabéticos. Solução (decisão do usuário: **híbrido**): `buscar_screener()` une o alfabético-100 com a paginação de `advancedsearchresultpaginated` (`totalResults: 602`, 20/página) deduplicando por ticker (~601 FIIs, cobre ~49/50). Para os tickers que ainda faltam, fallback per-ticker pela página HTML.
-2. **Fallback + vacância via HTML.** Adicionado `StatusInvestClient.buscar_pagina_html(ticker)` e `StatusInvestParser.extrair_fundamentais()` (fallback) + `extrair_vacancia()`. **Patrimônio** vem do bloco **JSON-LD** embutido (`"Patrimônio líquido"…"value":N`); **dy_atual** = último rendimento × 12 / valor atual; **vacância** do `<small class="label">VACÂNCIA</small>` (ignora o widget `-%`).
+2. **Fallback via HTML.** Adicionado `StatusInvestClient.buscar_pagina_html(ticker)` e `StatusInvestParser.extrair_fundamentais()` (fallback p/ tickers fora do screener). **Patrimônio** vem do bloco **JSON-LD** embutido (`"Patrimônio líquido"…"value":N`); **dy_atual** = último rendimento × 12 / valor atual.
+   - **Vacância DROPADA** (decisão durante o review final): o campo "VACÂNCIA" por imóvel do Status Invest é inconsistente entre fundos (vacância real no HGLG ~3,8%; ocupação ~91–98% no HSML11) e não há agregado confiável no HTML (widget mostra `-%`). Gravar isso produziria dado errado (ex.: shopping com 84% de "vacância"). → campos de vacância ficam **nulos**; o scoring redistribui o peso da dimensão Risco.
 3. **Context-manager** adicionado ao `StatusInvestClient` (fecha o pool httpx).
 4. **`dy_atual` com rendimento R$0** → 0.0 (yield real 0%), não `None`.
 
 ### Resultado da coleta real (2026-05-31)
-49/50 coletados. Cobertura no indicador mais recente: dy_atual 96%, dy_12m 98%, p_vp 96%, liquidez 94%, patrimônio 98%, cotistas 98%, volatilidade 94%, vacância física (tijolo) 22/24=92%. **DoD ≥90% atingido.**
+49/50 coletados. Cobertura no indicador mais recente: dy_atual 96%, dy_12m 98%, p_vp 96%, liquidez 94%, patrimônio 98%, cotistas 98%, volatilidade 94%. **DoD ≥90% atingido nos 7 indicadores coletáveis** (vacância dropada — ver limitações).
 
 ### Limitações documentadas (trabalho futuro)
 - **MALL11** (1/50): sem dados no Status Invest hoje (`tickerprice` vazio, página stub) — provável renomeação/fusão.
-- **Vacância financeira** 0/50: a página do Status Invest expõe uma única "Vacância" (mapeada para física), sem split física/financeira no HTML estático.
+- **Vacância (física e financeira) 0/50 — não coletável de forma confiável** no Status Invest (campo por imóvel inconsistente entre fundos; sem agregado no HTML). Trabalho futuro: obter de relatórios gerenciais/RI ou fonte paga. O scoring redistribui o peso (tratamento de nulos do CLAUDE.md).
 - **Clustering degenerado** (3/4 clusters viram "Papel Agressivo"; sem `silhouette.png`): endereçado na **Sprint 06** (5ª feature = volatilidade + heurística + silhueta).
