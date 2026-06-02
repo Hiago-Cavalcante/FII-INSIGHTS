@@ -20,7 +20,10 @@ import sys  # noqa: E402
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app import models  # noqa: E402, F401
-from app.database import Base  # noqa: E402
+from app.config import settings  # noqa: E402
+from app.database import Base, normalize_database_url  # noqa: E402
+
+config.set_main_option("sqlalchemy.url", normalize_database_url(settings.database_url))
 
 target_metadata = Base.metadata
 

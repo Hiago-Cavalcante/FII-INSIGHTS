@@ -20,10 +20,8 @@ def connect_args_for(url: str) -> dict[str, object]:
     return {}
 
 
-engine = create_engine(
-    settings.database_url,
-    connect_args={"check_same_thread": False},
-)
+_db_url = normalize_database_url(settings.database_url)
+engine = create_engine(_db_url, connect_args=connect_args_for(_db_url))
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
