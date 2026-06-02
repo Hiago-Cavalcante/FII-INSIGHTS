@@ -5,6 +5,21 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import settings
 
+
+def normalize_database_url(url: str) -> str:
+    """Garante o driver psycopg em URLs Postgres (Neon entrega 'postgresql://')."""
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
+
+def connect_args_for(url: str) -> dict[str, object]:
+    """check_same_thread é exclusivo do SQLite; Postgres não aceita esse arg."""
+    if url.startswith("sqlite"):
+        return {"check_same_thread": False}
+    return {}
+
+
 engine = create_engine(
     settings.database_url,
     connect_args={"check_same_thread": False},
