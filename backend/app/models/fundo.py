@@ -21,6 +21,9 @@ class Fundo(Base):
     ticker: Mapped[str] = mapped_column(
         String(10), unique=True, nullable=False, index=True
     )
+    classe: Mapped[str] = mapped_column(
+        String(6), nullable=False, server_default="FII", default="FII"
+    )
     nome: Mapped[str | None] = mapped_column(String(200))
     segmento: Mapped[str | None] = mapped_column(String(100))
     gestora: Mapped[str | None] = mapped_column(String(200))

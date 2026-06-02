@@ -158,3 +158,19 @@ def test_perfil_com_pesos_customizados(db_session):
     db_session.refresh(perfil)
 
     assert perfil.pesos_personalizados["dy_atual"] == 0.25
+
+
+def test_fundo_classe_default_fii(db_session):
+    fundo = Fundo(ticker="HGLG11")
+    db_session.add(fundo)
+    db_session.commit()
+    db_session.refresh(fundo)
+    assert fundo.classe == "FII"
+
+
+def test_fundo_classe_fiagro(db_session):
+    fundo = Fundo(ticker="SPAF11", classe="FIAGRO")
+    db_session.add(fundo)
+    db_session.commit()
+    db_session.refresh(fundo)
+    assert fundo.classe == "FIAGRO"
