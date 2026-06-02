@@ -60,3 +60,15 @@ def test_atualizar_fundo(db_session):
 
     assert atualizado.nome == "Vinci Shopping Centers"
     assert atualizado.ticker == "VISC11"
+
+
+def test_criar_fundo_com_classe_fiagro(db_session):
+    repo = FundoRepository(db_session)
+    fundo = repo.criar(ticker="SPAF11", nome="Sparta Cred Fiagro", classe="FIAGRO")
+    assert fundo.classe == "FIAGRO"
+
+
+def test_criar_fundo_classe_default_fii(db_session):
+    repo = FundoRepository(db_session)
+    fundo = repo.criar(ticker="XPLG11")
+    assert fundo.classe == "FII"

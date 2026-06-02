@@ -15,6 +15,7 @@ class FundoRepository:
         segmento: str | None = None,
         gestora: str | None = None,
         data_ipo: object = None,
+        classe: str = "FII",
     ) -> Fundo:
         fundo = Fundo(
             ticker=ticker,
@@ -22,6 +23,7 @@ class FundoRepository:
             segmento=segmento,
             gestora=gestora,
             data_ipo=data_ipo,
+            classe=classe,
         )
         self.db.add(fundo)
         self.db.commit()

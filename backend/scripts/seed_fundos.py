@@ -304,6 +304,7 @@ FUNDOS_SEED: list[dict[str, Any]] = [
         "nome": "Sparta Cred Fiagro",
         "segmento": "Recebíveis",
         "gestora": "Sparta Investimentos",
+        "classe": "FIAGRO",
     },
     {
         "ticker": "HGFF11",
