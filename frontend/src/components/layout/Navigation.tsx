@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { Moon, Sun, TrendingUp, ChevronDown, Check } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Moon, Sun, TrendingUp, ChevronDown, Check, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { usePerfilStore } from "@/stores/perfilStore";
+import { useAuthStore } from "@/stores/authStore";
 import type { TipoPerfil } from "@/types/domain";
 
 const navLinks = [
   { to: "/", label: "Dashboard" },
   { to: "/ranking", label: "Ranking" },
   { to: "/clusters", label: "Clusters" },
+  { to: "/carteira", label: "Carteira" },
   { to: "/perfil", label: "Perfil" },
 ];
 
@@ -27,8 +29,11 @@ const perfilColors: Record<TipoPerfil, string> = {
 
 export function Navigation() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDark, toggle } = useDarkMode();
   const { tipo, setTipo } = usePerfilStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -125,6 +130,40 @@ export function Navigation() {
                   </button>
                 ))}
               </div>
+            )}
+          </div>
+
+          <div className="ml-1 flex items-center gap-2 border-l border-gray-200 pl-2 dark:border-gray-700">
+            {user ? (
+              <>
+                <span className="hidden max-w-[10rem] truncate text-sm text-gray-600 dark:text-gray-300 sm:inline">
+                  {user.email}
+                </span>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate("/login");
+                  }}
+                  aria-label="Sair"
+                  className={cn(
+                    "flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium",
+                    "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  )}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sair</span>
+                </button>
+              </>
+            ) : (
+              <NavLink
+                to="/login"
+                className={cn(
+                  "flex h-9 items-center rounded-lg px-3 text-sm font-medium",
+                  "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                )}
+              >
+                Entrar
+              </NavLink>
             )}
           </div>
         </div>
