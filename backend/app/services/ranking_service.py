@@ -13,9 +13,9 @@ from app.services.scoring_service import (
     classificar_score,
 )
 
-_MILHAO = 1_000_000      # liquidez_diaria: R$ -> R$ milhões
+_MILHAO = 1_000_000  # liquidez_diaria: R$ -> R$ milhões
 _BILHAO = 1_000_000_000  # patrimonio_liquido: R$ -> R$ bilhões
-_MILHAR = 1_000          # num_cotistas: unidades -> milhares
+_MILHAR = 1_000  # num_cotistas: unidades -> milhares
 
 
 @dataclass
@@ -50,16 +50,12 @@ def _converter_display(ind: Indicador) -> dict[str, float | None]:
         "p_vp": round(ind.p_vp, 2) if ind.p_vp is not None else None,
         "vacancia_fisica": _pct(ind.vacancia_fisica),
         "vacancia_financeira": _pct(ind.vacancia_financeira),
-        "liquidez_diaria": round(ind.liquidez_diaria / _MILHAO, 2)
-        if ind.liquidez_diaria is not None
-        else None,
+        "liquidez_diaria": round(ind.liquidez_diaria / _MILHAO, 2) if ind.liquidez_diaria is not None else None,
         "volatilidade_12m": _pct(ind.volatilidade_12m),
         "patrimonio_liquido": round(ind.patrimonio_liquido / _BILHAO, 2)
         if ind.patrimonio_liquido is not None
         else None,
-        "num_cotistas": round(ind.num_cotistas / _MILHAR, 1)
-        if ind.num_cotistas is not None
-        else None,
+        "num_cotistas": round(ind.num_cotistas / _MILHAR, 1) if ind.num_cotistas is not None else None,
     }
 
 

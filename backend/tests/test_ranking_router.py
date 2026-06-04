@@ -31,10 +31,16 @@ def test_ranking_perfil_invalido_retorna_422(client_seeded: TestClient):
 
 
 PESOS_OK = {
-    "dy_atual": 0.20, "dy_12m": 0.10, "p_vp": 0.15,
-    "vacancia_fisica": 0.10, "vacancia_financeira": 0.10,
-    "liquidez_diaria": 0.10, "volatilidade_12m": 0.10,
-    "patrimonio_liquido": 0.05, "num_cotistas": 0.05, "segmento": 0.05,
+    "dy_atual": 0.20,
+    "dy_12m": 0.10,
+    "p_vp": 0.15,
+    "vacancia_fisica": 0.10,
+    "vacancia_financeira": 0.10,
+    "liquidez_diaria": 0.10,
+    "volatilidade_12m": 0.10,
+    "patrimonio_liquido": 0.05,
+    "num_cotistas": 0.05,
+    "segmento": 0.05,
 }
 
 

@@ -85,17 +85,27 @@ def _criar_fundo_com_indicador(db_session, ticker, segmento="Logística", **camp
 
 def test_scoring_service_calcula_e_salva(db_session):
     _criar_fundo_com_indicador(
-        db_session, "SCOR11",
-        dy_atual=0.09, dy_12m=0.085, p_vp=0.93,
-        vacancia_fisica=0.025, vacancia_financeira=0.031,
-        liquidez_diaria=9_863_300.0, patrimonio_liquido=7_000_000_000.0,
+        db_session,
+        "SCOR11",
+        dy_atual=0.09,
+        dy_12m=0.085,
+        p_vp=0.93,
+        vacancia_fisica=0.025,
+        vacancia_financeira=0.031,
+        liquidez_diaria=9_863_300.0,
+        patrimonio_liquido=7_000_000_000.0,
         num_cotistas=565_330,
     )
     _criar_fundo_com_indicador(
-        db_session, "SCOR22",
-        dy_atual=0.07, dy_12m=0.07, p_vp=1.10,
-        vacancia_fisica=0.08, vacancia_financeira=0.10,
-        liquidez_diaria=500_000.0, patrimonio_liquido=1_000_000_000.0,
+        db_session,
+        "SCOR22",
+        dy_atual=0.07,
+        dy_12m=0.07,
+        p_vp=1.10,
+        vacancia_fisica=0.08,
+        vacancia_financeira=0.10,
+        liquidez_diaria=500_000.0,
+        patrimonio_liquido=1_000_000_000.0,
         num_cotistas=100_000,
     )
     resultado = ScoringService(db_session).executar()
@@ -105,8 +115,10 @@ def test_scoring_service_calcula_e_salva(db_session):
 
 def test_scoring_fundo_sem_alguns_indicadores(db_session):
     _criar_fundo_com_indicador(
-        db_session, "NULL11",
-        dy_atual=0.09, p_vp=0.93,
+        db_session,
+        "NULL11",
+        dy_atual=0.09,
+        p_vp=0.93,
     )
     resultado = ScoringService(db_session).executar()
     assert resultado["calculados"] == 1
@@ -187,9 +199,16 @@ def test_score_todos_tres_da_60():
 def test_score_caso_misto_valor_exato():
     # Σ peso×(pts/5)×100 (todos presentes, sem redistribuição) = 84.0 (calc. à mão).
     p = _pont(
-        dy_atual=5, dy_12m=3, p_vp=4, vacancia_fisica=5, vacancia_financeira=5,
-        liquidez_diaria=4, volatilidade_12m=3, patrimonio_liquido=3,
-        num_cotistas=4, segmento=5,
+        dy_atual=5,
+        dy_12m=3,
+        p_vp=4,
+        vacancia_fisica=5,
+        vacancia_financeira=5,
+        liquidez_diaria=4,
+        volatilidade_12m=3,
+        patrimonio_liquido=3,
+        num_cotistas=4,
+        segmento=5,
     )
     assert calcular_score_com_pesos(p, PESOS_DEFAULT) == pytest.approx(84.0)
 
@@ -198,8 +217,13 @@ def test_redistribuicao_dentro_da_dimensao_risco():
     # No Risco só há liquidez (pts=1); ela absorve todo o peso da dimensão (0.40).
     # Demais presentes = 5. Score à mão = 30+15+8+15 = 68.0.
     p = _pont(
-        dy_atual=5, dy_12m=5, p_vp=5, liquidez_diaria=1,
-        patrimonio_liquido=5, num_cotistas=5, segmento=5,
+        dy_atual=5,
+        dy_12m=5,
+        p_vp=5,
+        liquidez_diaria=1,
+        patrimonio_liquido=5,
+        num_cotistas=5,
+        segmento=5,
     )
     assert calcular_score_com_pesos(p, PESOS_DEFAULT) == pytest.approx(68.0)
 
@@ -208,8 +232,12 @@ def test_dimensao_risco_inteira_ausente_renormaliza():
     # Risco todo nulo → excluído (não contado como zero). Rent=5, Val=5, Estrutura=3.
     # peso_total=0.60 → score à mão = 50+25+15 = 90.0. (Caso documentado no CLAUDE.md.)
     p = _pont(
-        dy_atual=5, dy_12m=5, p_vp=5,
-        patrimonio_liquido=3, num_cotistas=3, segmento=3,
+        dy_atual=5,
+        dy_12m=5,
+        p_vp=5,
+        patrimonio_liquido=3,
+        num_cotistas=3,
+        segmento=3,
     )
     assert calcular_score_com_pesos(p, PESOS_DEFAULT) == pytest.approx(90.0)
 
@@ -224,10 +252,16 @@ def test_score_conservador_com_estrutura_so_segmento_nao_quebra():
     from app.services.scoring_service import PESOS_POR_PERFIL
 
     pontuacoes = {
-        "dy_atual": 5.0, "dy_12m": 5.0, "p_vp": 4.0,
-        "vacancia_fisica": None, "vacancia_financeira": None,
-        "liquidez_diaria": 4.0, "volatilidade_12m": 5.0,
-        "patrimonio_liquido": None, "num_cotistas": None, "segmento": 3.0,
+        "dy_atual": 5.0,
+        "dy_12m": 5.0,
+        "p_vp": 4.0,
+        "vacancia_fisica": None,
+        "vacancia_financeira": None,
+        "liquidez_diaria": 4.0,
+        "volatilidade_12m": 5.0,
+        "patrimonio_liquido": None,
+        "num_cotistas": None,
+        "segmento": 3.0,
     }
     score = calcular_score_com_pesos(pontuacoes, PESOS_POR_PERFIL["conservador"])
     assert isinstance(score, float)

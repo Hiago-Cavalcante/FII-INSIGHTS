@@ -63,18 +63,10 @@ def listar_ranking(
     db: Session = Depends(get_db),
 ) -> list[RankingItemOut]:
     """Ranking calculado sob demanda com os pesos canônicos do perfil."""
-    return [
-        RankingItemOut.model_validate(i)
-        for i in montar_ranking(db, PESOS_POR_PERFIL[perfil])
-    ]
+    return [RankingItemOut.model_validate(i) for i in montar_ranking(db, PESOS_POR_PERFIL[perfil])]
 
 
 @router.post("/ranking/simular", response_model=list[RankingItemOut])
-def simular_ranking(
-    body: SimularIn, db: Session = Depends(get_db)
-) -> list[RankingItemOut]:
+def simular_ranking(body: SimularIn, db: Session = Depends(get_db)) -> list[RankingItemOut]:
     """Ranking calculado sob demanda com pesos customizados (soma = 1.0)."""
-    return [
-        RankingItemOut.model_validate(i)
-        for i in montar_ranking(db, body.pesos.model_dump())
-    ]
+    return [RankingItemOut.model_validate(i) for i in montar_ranking(db, body.pesos.model_dump())]

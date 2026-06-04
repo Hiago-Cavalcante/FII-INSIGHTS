@@ -68,9 +68,7 @@ class ColetaService:
                 if screener_miss:
                     try:
                         html = self._client.buscar_pagina_html(fundo.ticker)
-                        for chave, valor in self._parser.extrair_fundamentais(
-                            html
-                        ).items():
+                        for chave, valor in self._parser.extrair_fundamentais(html).items():
                             campos.setdefault(chave, valor)
                     except Exception as e:
                         logger.warning("Página HTML indisponível p/ %s: %s", fundo.ticker, e)
@@ -81,9 +79,7 @@ class ColetaService:
                     logger.warning("Sem dados para %s", fundo.ticker)
                     continue
 
-                self._indicadores.upsert(
-                    fundo_id=fundo.id, data_referencia=hoje, **campos
-                )
+                self._indicadores.upsert(fundo_id=fundo.id, data_referencia=hoje, **campos)
                 resultado.coletados += 1
                 logger.info("Coletado: %s", fundo.ticker)
             except Exception as e:

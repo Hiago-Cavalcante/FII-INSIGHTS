@@ -53,8 +53,11 @@ def test_preparar_features_exclui_sem_liquidez(db_session):
     db_session.flush()
     db_session.add(
         Indicador(
-            fundo_id=fundo.id, data_referencia=date(2026, 5, 26),
-            dy_12m=0.08, p_vp=1.0, volatilidade_12m=0.12,  # sem liquidez_diaria
+            fundo_id=fundo.id,
+            data_referencia=date(2026, 5, 26),
+            dy_12m=0.08,
+            p_vp=1.0,
+            volatilidade_12m=0.12,  # sem liquidez_diaria
         )
     )
     db_session.commit()
@@ -69,8 +72,11 @@ def test_preparar_features_imputa_volatilidade_ausente(db_session):
         db_session.flush()
         db_session.add(
             Indicador(
-                fundo_id=f.id, data_referencia=date(2026, 5, 26),
-                dy_12m=0.08, p_vp=1.0, liquidez_diaria=1_000_000.0,
+                fundo_id=f.id,
+                data_referencia=date(2026, 5, 26),
+                dy_12m=0.08,
+                p_vp=1.0,
+                liquidez_diaria=1_000_000.0,
                 volatilidade_12m=vol,
             )
         )

@@ -11,13 +11,13 @@ from app.utils.parsers.status_invest_json import (
 def test_normalizar_screener_item_converte_unidades():
     item = {
         "ticker": "XPLG11",
-        "dy": 9.85,                 # % -> fração
-        "p_vp": 0.70,               # razão (sem conversão)
+        "dy": 9.85,  # % -> fração
+        "p_vp": 0.70,  # razão (sem conversão)
         "liquidezmediadiaria": 75824.52,
         "patrimonio": 2_000_000_000.0,
         "numerocotistas": 180000,
         "price": 100.0,
-        "lastdividend": 0.80,       # R$ -> dy_atual = 0.80*12/100 = 0.096
+        "lastdividend": 0.80,  # R$ -> dy_atual = 0.80*12/100 = 0.096
     }
     out = normalizar_screener_item(item)
     assert out["dy_12m"] == pytest.approx(0.0985)
@@ -54,9 +54,15 @@ def test_parse_screener_indexa_por_ticker():
 
 
 def test_parse_serie_precos_lista_envelopada():
-    payload = [{"prices": [{"price": 10.0, "date": "01/01/25 00:00"},
-                           {"price": 11.0, "date": "02/01/25 00:00"},
-                           {"price": None, "date": "03/01/25 00:00"}]}]
+    payload = [
+        {
+            "prices": [
+                {"price": 10.0, "date": "01/01/25 00:00"},
+                {"price": 11.0, "date": "02/01/25 00:00"},
+                {"price": None, "date": "03/01/25 00:00"},
+            ]
+        }
+    ]
     assert parse_serie_precos(payload) == [10.0, 11.0]
 
 

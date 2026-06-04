@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 _BASE_HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     ),
     "Accept-Language": "pt-BR,pt;q=0.9",
 }
@@ -55,9 +54,7 @@ def _request_com_retry(
             if resp.status_code in _STATUS_NAO_RETRIABLE:
                 resp.raise_for_status()
             if resp.status_code in _STATUS_RETRIABLE:
-                raise httpx.HTTPStatusError(
-                    f"HTTP {resp.status_code}", request=resp.request, response=resp
-                )
+                raise httpx.HTTPStatusError(f"HTTP {resp.status_code}", request=resp.request, response=resp)
             resp.raise_for_status()
             return resp
         except httpx.HTTPStatusError as e:
@@ -66,9 +63,7 @@ def _request_com_retry(
             ultimo_erro = e
             if tentativa < max_tentativas - 1:
                 wait = 2**tentativa
-                logger.warning(
-                    "Tentativa %d falhou: %s. Aguardando %ds", tentativa + 1, e, wait
-                )
+                logger.warning("Tentativa %d falhou: %s. Aguardando %ds", tentativa + 1, e, wait)
                 time.sleep(wait)
         except (httpx.TimeoutException, httpx.NetworkError) as e:
             ultimo_erro = e
@@ -88,6 +83,4 @@ def fetch_json_com_retry(
     params: dict[str, str] | None = None,
     max_tentativas: int = 3,
 ) -> Any:
-    return _request_com_retry(
-        client, url, params=params, max_tentativas=max_tentativas
-    ).json()
+    return _request_com_retry(client, url, params=params, max_tentativas=max_tentativas).json()

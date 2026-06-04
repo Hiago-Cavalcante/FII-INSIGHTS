@@ -15,7 +15,7 @@ def calcular_volatilidade_anualizada(
     """
     if not precos or len(precos) < min_retornos + 1:
         return None
-    arr = np.asarray(precos[-(janela + 1):], dtype=float)
+    arr = np.asarray(precos[-(janela + 1) :], dtype=float)
     arr = arr[arr > 0]
     if len(arr) < min_retornos + 1:
         return None

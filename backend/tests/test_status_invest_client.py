@@ -7,9 +7,7 @@ import respx
 
 from app.utils.status_invest_client import StatusInvestClient
 
-_SCREENER_REAL = json.loads(
-    (Path(__file__).parent / "fixtures" / "si_screener_real.json").read_text()
-)
+_SCREENER_REAL = json.loads((Path(__file__).parent / "fixtures" / "si_screener_real.json").read_text())
 # Regex disjuntos: 'advancedsearchresult\?' casa só o não-paginado (query logo após
 # 'result'); 'advancedsearchresultpaginated' casa só o paginado.
 _RE_SCREENER = r"advancedsearchresult\?"
@@ -23,9 +21,7 @@ def test_buscar_screener_une_alfabetico_e_paginado():
         respx.get(url__regex=_RE_PAGINATED).mock(
             side_effect=[httpx.Response(200, json=pagina1), httpx.Response(200, json=vazio)]
         )
-        respx.get(url__regex=_RE_SCREENER).mock(
-            return_value=httpx.Response(200, json=_SCREENER_REAL)
-        )
+        respx.get(url__regex=_RE_SCREENER).mock(return_value=httpx.Response(200, json=_SCREENER_REAL))
         with patch("app.utils.status_invest_client.time.sleep"):
             itens = StatusInvestClient().buscar_screener()
     tickers = {it["ticker"] for it in itens}
@@ -35,12 +31,9 @@ def test_buscar_screener_une_alfabetico_e_paginado():
 
 
 def test_buscar_serie_precos_extrai_lista_de_floats():
-    payload = [{"prices": [{"price": 100.0, "date": "01/01/25 00:00"},
-                           {"price": 101.5, "date": "02/01/25 00:00"}]}]
+    payload = [{"prices": [{"price": 100.0, "date": "01/01/25 00:00"}, {"price": 101.5, "date": "02/01/25 00:00"}]}]
     with respx.mock:
-        respx.get(url__regex=r"tickerprice").mock(
-            return_value=httpx.Response(200, json=payload)
-        )
+        respx.get(url__regex=r"tickerprice").mock(return_value=httpx.Response(200, json=payload))
         precos = StatusInvestClient().buscar_serie_precos("XPLG11")
     assert precos == [100.0, 101.5]
 

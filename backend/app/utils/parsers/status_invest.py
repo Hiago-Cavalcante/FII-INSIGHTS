@@ -28,9 +28,7 @@ class StatusInvestParser:
         return {
             "dy_12m": self._pct(self._valor(soup, r"Dividend Yield")),
             "p_vp": self._br_float(self._valor(soup, r"^P/VP$")),
-            "liquidez_diaria": self._br_float(
-                self._valor(soup, r"Liquidez m[ée]dia di[áa]ria")
-            ),
+            "liquidez_diaria": self._br_float(self._valor(soup, r"Liquidez m[ée]dia di[áa]ria")),
             "num_cotistas": self._br_int(self._valor(soup, r"N[ºo°] de Cotistas")),
             "patrimonio_liquido": self._patrimonio(html),
             "dy_atual": calcular_dy_atual(ultimo, preco),

@@ -4,6 +4,7 @@ Uso:
     cd backend && source .venv/bin/activate
     python -m scripts.rodar_clustering
 """
+
 from __future__ import annotations
 
 import logging

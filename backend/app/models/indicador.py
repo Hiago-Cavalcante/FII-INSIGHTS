@@ -16,9 +16,7 @@ class Indicador(Base):
     __tablename__ = "indicadores"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    fundo_id: Mapped[int] = mapped_column(
-        ForeignKey("fundos.id"), nullable=False, index=True
-    )
+    fundo_id: Mapped[int] = mapped_column(ForeignKey("fundos.id"), nullable=False, index=True)
     data_referencia: Mapped[date] = mapped_column(Date, nullable=False)
 
     dy_atual: Mapped[float | None] = mapped_column(Float)

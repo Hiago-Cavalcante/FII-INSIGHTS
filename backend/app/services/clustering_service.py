@@ -192,10 +192,7 @@ class ClusteringService:
             ks_validos = [k for k in range(2, 9) if k <= len(x_scaled) - 1]
 
             # Cotovelo (inércia × k)
-            inercias = [
-                KMeans(n_clusters=k, random_state=42, n_init=10).fit(x_scaled).inertia_
-                for k in ks_validos
-            ]
+            inercias = [KMeans(n_clusters=k, random_state=42, n_init=10).fit(x_scaled).inertia_ for k in ks_validos]
             fig, ax = plt.subplots()
             ax.plot(ks_validos, inercias, "o-")
             ax.set_xlabel("k")
@@ -214,9 +211,7 @@ class ClusteringService:
                 ax.set_xlabel("k")
                 ax.set_ylabel("Silhouette médio")
                 ax.set_title("Análise de Silhueta")
-                ax.axvline(
-                    x=self._k, color="red", linestyle="--", label=f"k={self._k} escolhido"
-                )
+                ax.axvline(x=self._k, color="red", linestyle="--", label=f"k={self._k} escolhido")
                 ax.legend()
                 fig.savefig(_FIGURES_DIR / "silhouette.png", dpi=100, bbox_inches="tight")
                 plt.close(fig)

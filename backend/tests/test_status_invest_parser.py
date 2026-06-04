@@ -5,9 +5,7 @@ import pytest
 from app.utils.parsers.status_invest import StatusInvestParser
 
 # Página real do HGLG11 (capturada do Status Invest) — estrutura fiel.
-FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_real.html").read_text(
-    encoding="utf-8"
-)
+FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_real.html").read_text(encoding="utf-8")
 
 
 @pytest.fixture
@@ -28,8 +26,12 @@ def test_extrair_fundamentais_pagina_real(parser):
 def test_extrair_fundamentais_retorna_todas_as_chaves(parser):
     d = parser.extrair_fundamentais(FIXTURE)
     assert set(d.keys()) == {
-        "dy_12m", "p_vp", "liquidez_diaria", "num_cotistas",
-        "patrimonio_liquido", "dy_atual",
+        "dy_12m",
+        "p_vp",
+        "liquidez_diaria",
+        "num_cotistas",
+        "patrimonio_liquido",
+        "dy_atual",
     }
 
 

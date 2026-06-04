@@ -16,9 +16,7 @@ class ScoringHistorico(Base):
     __tablename__ = "scoring_historico"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    fundo_id: Mapped[int] = mapped_column(
-        ForeignKey("fundos.id"), nullable=False, index=True
-    )
+    fundo_id: Mapped[int] = mapped_column(ForeignKey("fundos.id"), nullable=False, index=True)
     data_execucao: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     score: Mapped[float] = mapped_column(Float, nullable=False)
     classificacao: Mapped[str] = mapped_column(String(20), nullable=False)

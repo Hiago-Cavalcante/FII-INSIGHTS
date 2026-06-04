@@ -12,9 +12,7 @@ from app.services.scoring_service import PESOS_DEFAULT, PESOS_POR_PERFIL
 
 
 def _session() -> Session:
-    engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
-    )
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
     return sessionmaker(bind=engine)()
 
@@ -62,12 +60,12 @@ def test_montar_ranking_converte_para_unidades_de_display():
     db = _session()
     _semear(db)
     item = next(i for i in montar_ranking(db, PESOS_DEFAULT) if i.ticker == "AAAA11")
-    assert item.dy_atual == 10.0            # 0.10 * 100
-    assert item.volatilidade_12m == 8.5     # 0.085 * 100
-    assert item.liquidez_diaria == 18.0     # 18_000_000 / 1e6
-    assert item.patrimonio_liquido == 5.0   # 5e9 / 1e9
-    assert item.num_cotistas == 300.0       # 300_000 / 1000
-    assert item.p_vp == 0.92                # sem conversão
+    assert item.dy_atual == 10.0  # 0.10 * 100
+    assert item.volatilidade_12m == 8.5  # 0.085 * 100
+    assert item.liquidez_diaria == 18.0  # 18_000_000 / 1e6
+    assert item.patrimonio_liquido == 5.0  # 5e9 / 1e9
+    assert item.num_cotistas == 300.0  # 300_000 / 1000
+    assert item.p_vp == 0.92  # sem conversão
 
 
 def test_montar_ranking_nao_persiste_scoring():
@@ -75,6 +73,7 @@ def test_montar_ranking_nao_persiste_scoring():
     _semear(db)
     montar_ranking(db, PESOS_DEFAULT)
     from app.models.scoring import ScoringHistorico
+
     assert db.query(ScoringHistorico).count() == 0
 
 
@@ -100,10 +99,15 @@ def test_montar_ranking_fundo_sem_indicadores_pontua_zero_e_evitar():
         Indicador(
             fundo_id=fundo.id,
             data_referencia=date(2026, 5, 1),
-            dy_atual=None, dy_12m=None, p_vp=None,
-            vacancia_fisica=None, vacancia_financeira=None,
-            liquidez_diaria=None, volatilidade_12m=None,
-            patrimonio_liquido=None, num_cotistas=None,
+            dy_atual=None,
+            dy_12m=None,
+            p_vp=None,
+            vacancia_fisica=None,
+            vacancia_financeira=None,
+            liquidez_diaria=None,
+            volatilidade_12m=None,
+            patrimonio_liquido=None,
+            num_cotistas=None,
         )
     )
     db.commit()

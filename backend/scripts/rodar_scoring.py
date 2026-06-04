@@ -4,6 +4,7 @@ Uso:
     cd backend && source .venv/bin/activate
     python -m scripts.rodar_scoring
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,7 +24,9 @@ def main() -> None:
         resultado = ScoringService(db).executar()
     logger.info(
         "Scoring: %d calculados, %d sem dados, %d erros",
-        resultado["calculados"], resultado["sem_dados"], resultado["erros"],
+        resultado["calculados"],
+        resultado["sem_dados"],
+        resultado["erros"],
     )
     sys.exit(0 if resultado["erros"] == 0 else 1)
 

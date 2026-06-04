@@ -5,16 +5,19 @@ from app.repositories.fundo_repository import FundoRepository
 from app.repositories.indicador_repository import IndicadorRepository
 from app.services.coleta_service import ColetaService
 
-_FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_real.html").read_text(
-    encoding="utf-8"
-)
+_FIXTURE = (Path(__file__).parent / "fixtures" / "hglg11_real.html").read_text(encoding="utf-8")
 
 
 def _item(ticker: str) -> dict:
     return {
-        "ticker": ticker, "dy": 8.5, "p_vp": 0.93,
-        "liquidezmediadiaria": 9_000_000.0, "patrimonio": 7_000_000_000.0,
-        "numerocotistas": 565330, "price": 160.0, "lastdividend": 1.10,
+        "ticker": ticker,
+        "dy": 8.5,
+        "p_vp": 0.93,
+        "liquidezmediadiaria": 9_000_000.0,
+        "patrimonio": 7_000_000_000.0,
+        "numerocotistas": 565330,
+        "price": 160.0,
+        "lastdividend": 1.10,
     }
 
 

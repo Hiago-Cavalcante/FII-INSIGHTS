@@ -27,9 +27,7 @@ def dashboard_stats(db: Session = Depends(get_db)) -> DashboardStatsOut:
     """Estatísticas agregadas para o dashboard."""
     total_fundos = db.scalar(select(func.count()).select_from(Fundo)) or 0
 
-    com_dados = db.scalar(
-        select(func.count(func.distinct(Indicador.fundo_id))).select_from(Indicador)
-    ) or 0
+    com_dados = db.scalar(select(func.count(func.distinct(Indicador.fundo_id))).select_from(Indicador)) or 0
 
     subq = (
         select(ScoringHistorico.fundo_id, func.max(ScoringHistorico.data_execucao).label("max_dt"))
@@ -37,8 +35,9 @@ def dashboard_stats(db: Session = Depends(get_db)) -> DashboardStatsOut:
         .subquery()
     )
     scores_recentes = db.execute(
-        select(ScoringHistorico.score, ScoringHistorico.classificacao)
-        .join(subq, (ScoringHistorico.fundo_id == subq.c.fundo_id) & (ScoringHistorico.data_execucao == subq.c.max_dt))
+        select(ScoringHistorico.score, ScoringHistorico.classificacao).join(
+            subq, (ScoringHistorico.fundo_id == subq.c.fundo_id) & (ScoringHistorico.data_execucao == subq.c.max_dt)
+        )
     ).all()
 
     score_medio = None
@@ -48,9 +47,7 @@ def dashboard_stats(db: Session = Depends(get_db)) -> DashboardStatsOut:
         for r in scores_recentes:
             por_classificacao[r.classificacao] = por_classificacao.get(r.classificacao, 0) + 1
 
-    row = db.execute(
-        select(func.avg(Indicador.dy_12m), func.avg(Indicador.p_vp)).select_from(Indicador)
-    ).one()
+    row = db.execute(select(func.avg(Indicador.dy_12m), func.avg(Indicador.p_vp)).select_from(Indicador)).one()
     dy_medio = round(float(row[0]), 4) if row[0] else None
     p_vp_medio = round(float(row[1]), 4) if row[1] else None
 

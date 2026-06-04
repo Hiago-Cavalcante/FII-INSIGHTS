@@ -18,17 +18,13 @@ class StatusInvestClient:
     """Acesso aos endpoints do Status Invest para FIIs (JSON + página HTML)."""
 
     SCREENER_URL = "https://statusinvest.com.br/category/advancedsearchresult"
-    SCREENER_PAGINATED_URL = (
-        "https://statusinvest.com.br/category/advancedsearchresultpaginated"
-    )
+    SCREENER_PAGINATED_URL = "https://statusinvest.com.br/category/advancedsearchresultpaginated"
     TICKERPRICE_URL = "https://statusinvest.com.br/fii/tickerprice"
     PROVENTS_URL = "https://statusinvest.com.br/fii/companytickerprovents"
     PAGINA_URL = "https://statusinvest.com.br/fundos-imobiliarios"
 
     SCREENER_SEARCH = (
-        '{"Segment":"","my_range":"-20;100",'
-        '"dy":{"Item1":null,"Item2":null},'
-        '"p_vp":{"Item1":null,"Item2":null}}'
+        '{"Segment":"","my_range":"-20;100","dy":{"Item1":null,"Item2":null},"p_vp":{"Item1":null,"Item2":null}}'
     )
     MAX_PAGINAS = 40
 
@@ -73,9 +69,7 @@ class StatusInvestClient:
 
         for page in range(1, self.MAX_PAGINAS + 1):
             params = {**base, "page": str(page), "size": "100"}
-            data = fetch_json_com_retry(
-                self._client, self.SCREENER_PAGINATED_URL, params=params
-            )
+            data = fetch_json_com_retry(self._client, self.SCREENER_PAGINATED_URL, params=params)
             if not self._lista(data):
                 break
             self._acumular(todos, data)

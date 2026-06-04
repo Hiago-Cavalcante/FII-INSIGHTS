@@ -8,9 +8,7 @@ from scripts.seed_fundos import FUNDOS_SEED, seed
 
 
 def test_seed_cria_50_fundos():
-    engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
-    )
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
 
@@ -24,9 +22,7 @@ def test_seed_cria_50_fundos():
 
 
 def test_seed_idempotente():
-    engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
-    )
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
 

@@ -11,9 +11,7 @@ class IndicadorRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def criar(
-        self, fundo_id: int, data_referencia: date, **campos: object
-    ) -> Indicador:
+    def criar(self, fundo_id: int, data_referencia: date, **campos: object) -> Indicador:
         ind = Indicador(fundo_id=fundo_id, data_referencia=data_referencia, **campos)
         self.db.add(ind)
         self.db.commit()
@@ -22,19 +20,12 @@ class IndicadorRepository:
 
     def buscar_mais_recente(self, fundo_id: int) -> Indicador | None:
         stmt = (
-            select(Indicador)
-            .where(Indicador.fundo_id == fundo_id)
-            .order_by(Indicador.data_referencia.desc())
-            .limit(1)
+            select(Indicador).where(Indicador.fundo_id == fundo_id).order_by(Indicador.data_referencia.desc()).limit(1)
         )
         return self.db.scalar(stmt)
 
     def listar_por_fundo(self, fundo_id: int) -> list[Indicador]:
-        stmt = (
-            select(Indicador)
-            .where(Indicador.fundo_id == fundo_id)
-            .order_by(Indicador.data_referencia.desc())
-        )
+        stmt = select(Indicador).where(Indicador.fundo_id == fundo_id).order_by(Indicador.data_referencia.desc())
         return list(self.db.scalars(stmt))
 
     def upsert(self, fundo_id: int, data_referencia: date, **campos: object) -> Indicador:
@@ -72,8 +63,7 @@ class IndicadorRepository:
             .options(joinedload(Indicador.fundo))
             .join(
                 subq,
-                (Indicador.fundo_id == subq.c.fundo_id)
-                & (Indicador.data_referencia == subq.c.max_data),
+                (Indicador.fundo_id == subq.c.fundo_id) & (Indicador.data_referencia == subq.c.max_data),
             )
             .join(Fundo, Indicador.fundo_id == Fundo.id)
         )

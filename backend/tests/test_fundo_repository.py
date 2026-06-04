@@ -1,4 +1,3 @@
-
 from app.repositories.fundo_repository import FundoRepository
 
 
@@ -54,9 +53,7 @@ def test_atualizar_fundo(db_session):
     repo = FundoRepository(db_session)
     fundo = repo.criar(ticker="VISC11")
 
-    atualizado = repo.atualizar(
-        fundo, nome="Vinci Shopping Centers", segmento="Shopping"
-    )
+    atualizado = repo.atualizar(fundo, nome="Vinci Shopping Centers", segmento="Shopping")
 
     assert atualizado.nome == "Vinci Shopping Centers"
     assert atualizado.ticker == "VISC11"

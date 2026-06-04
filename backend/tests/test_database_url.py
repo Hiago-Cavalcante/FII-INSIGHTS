@@ -3,9 +3,7 @@ from app.database import connect_args_for, normalize_database_url
 
 def test_normalize_injeta_psycopg_em_postgres_puro():
     url = "postgresql://user:senha@host.neon.tech/db?sslmode=require"
-    assert normalize_database_url(url) == (
-        "postgresql+psycopg://user:senha@host.neon.tech/db?sslmode=require"
-    )
+    assert normalize_database_url(url) == ("postgresql+psycopg://user:senha@host.neon.tech/db?sslmode=require")
 
 
 def test_normalize_preserva_url_que_ja_tem_driver():

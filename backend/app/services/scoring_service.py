@@ -185,9 +185,7 @@ def calcular_pontuacoes(
     p["vacancia_financeira"] = (
         float(pontuar_vacancia(ind.vacancia_financeira)) if ind.vacancia_financeira is not None else None
     )
-    p["liquidez_diaria"] = (
-        float(pontuar_liquidez(ind.liquidez_diaria)) if ind.liquidez_diaria is not None else None
-    )
+    p["liquidez_diaria"] = float(pontuar_liquidez(ind.liquidez_diaria)) if ind.liquidez_diaria is not None else None
     p["volatilidade_12m"] = (
         float(pontuar_volatilidade(ind.volatilidade_12m)) if ind.volatilidade_12m is not None else None
     )

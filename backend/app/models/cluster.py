@@ -24,9 +24,7 @@ class Cluster(Base):
     p_vp_medio: Mapped[float | None] = mapped_column(Float)
     num_fiis: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    fundo_clusters: Mapped[list[FundoCluster]] = relationship(
-        back_populates="cluster", cascade="all, delete-orphan"
-    )
+    fundo_clusters: Mapped[list[FundoCluster]] = relationship(back_populates="cluster", cascade="all, delete-orphan")
 
 
 class FundoCluster(Base):
