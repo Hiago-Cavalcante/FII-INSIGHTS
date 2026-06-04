@@ -60,11 +60,17 @@ def client_seeded() -> Generator[TestClient, None, None]:
             db.flush()
             db.add(
                 Indicador(
-                    fundo_id=f.id, data_referencia=date(2026, 5, 1),
-                    dy_atual=dy, dy_12m=dy12, p_vp=pvp,
-                    vacancia_fisica=None, vacancia_financeira=None,
-                    liquidez_diaria=liq, volatilidade_12m=vol,
-                    patrimonio_liquido=pl, num_cotistas=cot,
+                    fundo_id=f.id,
+                    data_referencia=date(2026, 5, 1),
+                    dy_atual=dy,
+                    dy_12m=dy12,
+                    p_vp=pvp,
+                    vacancia_fisica=None,
+                    vacancia_financeira=None,
+                    liquidez_diaria=liq,
+                    volatilidade_12m=vol,
+                    patrimonio_liquido=pl,
+                    num_cotistas=cot,
                 )
             )
         db.commit()
@@ -124,10 +130,12 @@ def client_carteira() -> Generator[tuple[TestClient, object], None, None]:
     Base.metadata.create_all(engine)
     SessionTest = sessionmaker(bind=engine)
     with SessionTest() as db:
-        db.add_all([
-            Fundo(ticker="HGLG11", nome="CSHG Log", classe="FII"),
-            Fundo(ticker="SPAF11", nome="Sparta Fiagro", classe="FIAGRO"),
-        ])
+        db.add_all(
+            [
+                Fundo(ticker="HGLG11", nome="CSHG Log", classe="FII"),
+                Fundo(ticker="SPAF11", nome="Sparta Fiagro", classe="FIAGRO"),
+            ]
+        )
         db.commit()
 
     def _override() -> Generator[Session, None, None]:

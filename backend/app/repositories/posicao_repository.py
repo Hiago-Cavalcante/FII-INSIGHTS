@@ -35,27 +35,17 @@ class PosicaoRepository:
 
     def listar_por_usuario(self, usuario_id: int) -> list[Posicao]:
         """Retorna todas as posições de um usuário, ordenadas por id."""
-        stmt = (
-            select(Posicao)
-            .where(Posicao.usuario_id == usuario_id)
-            .order_by(Posicao.id)
-        )
+        stmt = select(Posicao).where(Posicao.usuario_id == usuario_id).order_by(Posicao.id)
         return list(self.db.scalars(stmt))
 
     def buscar(self, id: int, usuario_id: int) -> Posicao | None:
         """Busca uma posição pelo id, garantindo que pertence ao usuário."""
-        stmt = select(Posicao).where(
-            Posicao.id == id, Posicao.usuario_id == usuario_id
-        )
+        stmt = select(Posicao).where(Posicao.id == id, Posicao.usuario_id == usuario_id)
         return self.db.scalar(stmt)
 
-    def buscar_por_usuario_e_fundo(
-        self, usuario_id: int, fundo_id: int
-    ) -> Posicao | None:
+    def buscar_por_usuario_e_fundo(self, usuario_id: int, fundo_id: int) -> Posicao | None:
         """Busca a posição de um usuário em um fundo específico."""
-        stmt = select(Posicao).where(
-            Posicao.usuario_id == usuario_id, Posicao.fundo_id == fundo_id
-        )
+        stmt = select(Posicao).where(Posicao.usuario_id == usuario_id, Posicao.fundo_id == fundo_id)
         return self.db.scalar(stmt)
 
     def salvar(self, posicao: Posicao) -> Posicao:

@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 from decimal import ROUND_HALF_UP, Decimal
+from typing import TypedDict
 
 from sqlalchemy.orm import Session
 
 from app.models.posicao import Posicao
 from app.repositories.fundo_repository import FundoRepository
 from app.repositories.posicao_repository import PosicaoRepository
+
+
+class ResumoCarteira(TypedDict):
+    """Resultado consolidado da carteira do usuário."""
+
+    total_investido: Decimal
+    por_classe: dict[str, Decimal]
+    num_posicoes: int
+
 
 _CENTAVO = Decimal("0.01")
 
@@ -19,9 +29,7 @@ def _arredondar(valor: Decimal) -> Decimal:
     return valor.quantize(_CENTAVO, rounding=ROUND_HALF_UP)
 
 
-def registrar_aporte(
-    db: Session, usuario_id: int, ticker: str, quantidade: int, preco: Decimal
-) -> Posicao:
+def registrar_aporte(db: Session, usuario_id: int, ticker: str, quantidade: int, preco: Decimal) -> Posicao:
     """Registra um aporte: cria a posição ou recalcula o preço médio ponderado.
 
     Args:
@@ -62,7 +70,7 @@ def registrar_aporte(
     return repo.salvar(posicao)
 
 
-def resumo_carteira(db: Session, usuario_id: int) -> dict:
+def resumo_carteira(db: Session, usuario_id: int) -> ResumoCarteira:
     """Posição consolidada: total investido + quebra por classe (RF-04/08)."""
     posicoes = PosicaoRepository(db).listar_por_usuario(usuario_id)
     por_classe: dict[str, Decimal] = {"FII": Decimal("0.00"), "FIAGRO": Decimal("0.00")}

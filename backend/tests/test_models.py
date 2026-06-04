@@ -201,8 +201,10 @@ def test_posicao_persistida(db_session):
     db_session.commit()
 
     p = Posicao(
-        usuario_id=u.id, fundo_id=f.id,
-        quantidade=10, preco_medio=Decimal("100.00"),
+        usuario_id=u.id,
+        fundo_id=f.id,
+        quantidade=10,
+        preco_medio=Decimal("100.00"),
         valor_investido=Decimal("1000.00"),
     )
     db_session.add(p)

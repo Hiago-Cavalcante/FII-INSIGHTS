@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     brapi_token: str = ""
     cors_origins: str = "http://localhost:5173"
     log_level: str = "INFO"
-    auth_secret: str = "dev-insecure-change-me"
+    auth_secret: str = "dev-insecure-secret-troque-em-producao-0123456789"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 10080  # 7 dias
 

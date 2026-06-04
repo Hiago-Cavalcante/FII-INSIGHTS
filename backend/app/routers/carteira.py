@@ -49,8 +49,13 @@ class ResumoOut(BaseModel):
 
 def _to_out(p: Posicao) -> PosicaoOut:
     return PosicaoOut(
-        id=p.id, ticker=p.fundo.ticker, nome=p.fundo.nome, classe=p.fundo.classe,
-        quantidade=p.quantidade, preco_medio=p.preco_medio, valor_investido=p.valor_investido,
+        id=p.id,
+        ticker=p.fundo.ticker,
+        nome=p.fundo.nome,
+        classe=p.fundo.classe,
+        quantidade=p.quantidade,
+        preco_medio=p.preco_medio,
+        valor_investido=p.valor_investido,
     )
 
 
