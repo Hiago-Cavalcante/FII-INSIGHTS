@@ -82,3 +82,29 @@ def client_seeded() -> Generator[TestClient, None, None]:
     finally:
         app.dependency_overrides.clear()
         Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def client_db() -> Generator[TestClient, None, None]:
+    """TestClient com DB in-memory vazio e get_db sobrescrito (sem seed)."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    SessionTest = sessionmaker(bind=engine)
+
+    def _override() -> Generator[Session, None, None]:
+        db = SessionTest()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = _override
+    try:
+        yield TestClient(app)
+    finally:
+        app.dependency_overrides.clear()
+        Base.metadata.drop_all(engine)
