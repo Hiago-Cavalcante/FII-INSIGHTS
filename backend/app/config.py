@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     brapi_token: str = ""
     cors_origins: str = "http://localhost:5173"
     log_level: str = "INFO"
+    auth_secret: str = "dev-insecure-change-me"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 10080  # 7 dias
 
     model_config = SettingsConfigDict(
         env_file=".env",
