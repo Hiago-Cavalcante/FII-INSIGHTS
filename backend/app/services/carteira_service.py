@@ -60,3 +60,19 @@ def registrar_aporte(
     posicao.valor_investido = novo_valor
     posicao.preco_medio = _arredondar(novo_valor / Decimal(nova_qtd))
     return repo.salvar(posicao)
+
+
+def resumo_carteira(db: Session, usuario_id: int) -> dict:
+    """Posição consolidada: total investido + quebra por classe (RF-04/08)."""
+    posicoes = PosicaoRepository(db).listar_por_usuario(usuario_id)
+    por_classe: dict[str, Decimal] = {"FII": Decimal("0.00"), "FIAGRO": Decimal("0.00")}
+    total = Decimal("0.00")
+    for p in posicoes:
+        total += p.valor_investido
+        classe = p.fundo.classe if p.fundo.classe in por_classe else "FII"
+        por_classe[classe] += p.valor_investido
+    return {
+        "total_investido": total,
+        "por_classe": por_classe,
+        "num_posicoes": len(posicoes),
+    }

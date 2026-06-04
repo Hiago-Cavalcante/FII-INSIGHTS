@@ -45,3 +45,24 @@ def test_ticker_fora_do_catalogo(db_session):
     u = _usuario_e_fundos(db_session)
     with pytest.raises(TickerNaoEncontrado):
         registrar_aporte(db_session, u.id, "ZZZZ99", 1, Decimal("1.00"))
+
+
+from app.services.carteira_service import resumo_carteira
+
+
+def test_resumo_total_e_por_classe(db_session):
+    u = _usuario_e_fundos(db_session)
+    registrar_aporte(db_session, u.id, "HGLG11", 10, Decimal("100.00"))   # FII 1000
+    registrar_aporte(db_session, u.id, "SPAF11", 5, Decimal("200.00"))    # FIAGRO 1000
+    r = resumo_carteira(db_session, u.id)
+    assert r["total_investido"] == Decimal("2000.00")
+    assert r["por_classe"]["FII"] == Decimal("1000.00")
+    assert r["por_classe"]["FIAGRO"] == Decimal("1000.00")
+    assert r["num_posicoes"] == 2
+
+
+def test_resumo_carteira_vazia(db_session):
+    u = _usuario_e_fundos(db_session)
+    r = resumo_carteira(db_session, u.id)
+    assert r["total_investido"] == Decimal("0.00")
+    assert r["num_posicoes"] == 0
