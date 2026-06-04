@@ -4,6 +4,66 @@
  */
 
 export interface paths {
+    "/api/v1/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register
+         * @description Cria um usuário e já retorna o token (auto-login).
+         */
+        post: operations["register_api_v1_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description Autentica por e-mail e senha; mensagem genérica em falha.
+         */
+        post: operations["login_api_v1_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Me
+         * @description Retorna o usuário autenticado.
+         */
+        get: operations["me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/fundos": {
         parameters: {
             query?: never;
@@ -188,6 +248,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/carteira/posicoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Posicoes
+         * @description Lista as posições do usuário autenticado.
+         */
+        get: operations["listar_posicoes_api_v1_carteira_posicoes_get"];
+        put?: never;
+        /**
+         * Criar Posicao
+         * @description Registra um aporte (cria ou recalcula a média) no fundo informado.
+         */
+        post: operations["criar_posicao_api_v1_carteira_posicoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/carteira/resumo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resumo
+         * @description Posição consolidada do usuário (total + por classe).
+         */
+        get: operations["resumo_api_v1_carteira_resumo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/carteira/posicoes/{posicao_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Editar Posicao
+         * @description Corrige quantidade e preço médio de uma posição do usuário.
+         */
+        put: operations["editar_posicao_api_v1_carteira_posicoes__posicao_id__put"];
+        post?: never;
+        /**
+         * Remover Posicao
+         * @description Remove uma posição do usuário.
+         */
+        delete: operations["remover_posicao_api_v1_carteira_posicoes__posicao_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -212,6 +340,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AporteIn */
+        AporteIn: {
+            /** Ticker */
+            ticker: string;
+            /** Quantidade */
+            quantidade: number;
+            /** Preco */
+            preco: number | string;
+        };
         /** ClusterItemOut */
         ClusterItemOut: {
             /** Id */
@@ -310,6 +447,16 @@ export interface components {
             /** Num Cotistas */
             num_cotistas: number | null;
         };
+        /** LoginIn */
+        LoginIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Senha */
+            senha: string;
+        };
         /** PerfilOut */
         PerfilOut: {
             /** Id */
@@ -353,6 +500,30 @@ export interface components {
             /** Segmento */
             segmento: number;
         };
+        /** PosicaoOut */
+        PosicaoOut: {
+            /** Id */
+            id: number;
+            /** Ticker */
+            ticker: string;
+            /** Nome */
+            nome: string | null;
+            /** Classe */
+            classe: string;
+            /** Quantidade */
+            quantidade: number;
+            /** Preco Medio */
+            preco_medio: string;
+            /** Valor Investido */
+            valor_investido: string;
+        };
+        /** PosicaoUpdate */
+        PosicaoUpdate: {
+            /** Quantidade */
+            quantidade: number;
+            /** Preco Medio */
+            preco_medio: number | string;
+        };
         /** RankingItemOut */
         RankingItemOut: {
             /** Ticker */
@@ -387,6 +558,27 @@ export interface components {
             /** Num Cotistas */
             num_cotistas: number | null;
         };
+        /** RegistroIn */
+        RegistroIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Senha */
+            senha: string;
+        };
+        /** ResumoOut */
+        ResumoOut: {
+            /** Total Investido */
+            total_investido: string;
+            /** Por Classe */
+            por_classe: {
+                [key: string]: string;
+            };
+            /** Num Posicoes */
+            num_posicoes: number;
+        };
         /** ScoringResultadoOut */
         ScoringResultadoOut: {
             /** Calculados */
@@ -399,6 +591,23 @@ export interface components {
         /** SimularIn */
         SimularIn: {
             pesos: components["schemas"]["PesosIn"];
+        };
+        /** TokenOut */
+        TokenOut: {
+            /** Access Token */
+            access_token: string;
+            /**
+             * Token Type
+             * @default bearer
+             */
+            token_type: string;
+        };
+        /** UsuarioOut */
+        UsuarioOut: {
+            /** Id */
+            id: number;
+            /** Email */
+            email: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -418,6 +627,92 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    register_api_v1_auth_register_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistroIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_api_v1_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioOut"];
+                };
+            };
+        };
+    };
     listar_fundos_api_v1_fundos_get: {
         parameters: {
             query?: never;
@@ -662,6 +957,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClusteringResultadoOut"];
+                };
+            };
+        };
+    };
+    listar_posicoes_api_v1_carteira_posicoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosicaoOut"][];
+                };
+            };
+        };
+    };
+    criar_posicao_api_v1_carteira_posicoes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AporteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosicaoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resumo_api_v1_carteira_resumo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumoOut"];
+                };
+            };
+        };
+    };
+    editar_posicao_api_v1_carteira_posicoes__posicao_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                posicao_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PosicaoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosicaoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remover_posicao_api_v1_carteira_posicoes__posicao_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                posicao_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
