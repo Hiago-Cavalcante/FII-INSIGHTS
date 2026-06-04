@@ -108,3 +108,44 @@ def client_db() -> Generator[TestClient, None, None]:
     finally:
         app.dependency_overrides.clear()
         Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def client_carteira() -> Generator[tuple[TestClient, object], None, None]:
+    """TestClient com fundos semeados + factory de usuário autenticado.
+
+    Uso: client, novo_usuario = client_carteira; headers = novo_usuario("a@b.com").
+    """
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    SessionTest = sessionmaker(bind=engine)
+    with SessionTest() as db:
+        db.add_all([
+            Fundo(ticker="HGLG11", nome="CSHG Log", classe="FII"),
+            Fundo(ticker="SPAF11", nome="Sparta Fiagro", classe="FIAGRO"),
+        ])
+        db.commit()
+
+    def _override() -> Generator[Session, None, None]:
+        db = SessionTest()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = _override
+    client = TestClient(app)
+
+    def novo_usuario(email: str = "a@b.com") -> dict[str, str]:
+        r = client.post("/api/v1/auth/register", json={"email": email, "senha": "segredo123"})
+        return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    try:
+        yield client, novo_usuario
+    finally:
+        app.dependency_overrides.clear()
+        Base.metadata.drop_all(engine)
