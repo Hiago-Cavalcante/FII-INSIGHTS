@@ -174,3 +174,41 @@ def test_fundo_classe_fiagro(db_session):
     db_session.commit()
     db_session.refresh(fundo)
     assert fundo.classe == "FIAGRO"
+
+
+def test_usuario_persistido(db_session):
+    from app.models.usuario import Usuario
+
+    u = Usuario(email="a@b.com", senha_hash="hash")
+    db_session.add(u)
+    db_session.commit()
+    db_session.refresh(u)
+    assert u.id is not None
+    assert u.email == "a@b.com"
+    assert u.posicoes == []
+
+
+def test_posicao_persistida(db_session):
+    from decimal import Decimal
+
+    from app.models.fundo import Fundo
+    from app.models.posicao import Posicao
+    from app.models.usuario import Usuario
+
+    u = Usuario(email="dono@b.com", senha_hash="h")
+    f = Fundo(ticker="HGLG11")
+    db_session.add_all([u, f])
+    db_session.commit()
+
+    p = Posicao(
+        usuario_id=u.id, fundo_id=f.id,
+        quantidade=10, preco_medio=Decimal("100.00"),
+        valor_investido=Decimal("1000.00"),
+    )
+    db_session.add(p)
+    db_session.commit()
+    db_session.refresh(p)
+
+    assert p.id is not None
+    assert p.usuario.email == "dono@b.com"
+    assert p.fundo.ticker == "HGLG11"
