@@ -4,8 +4,16 @@ from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.database import get_db
+from app.models.usuario import Usuario
+from app.repositories.usuario_repository import UsuarioRepository
+
+_bearer = HTTPBearer(auto_error=False)
 
 
 def hash_senha(senha: str) -> str:
@@ -38,3 +46,24 @@ def decodificar_token(token: str) -> str | None:
         return None
     sub = payload.get("sub")
     return sub if isinstance(sub, str) else None
+
+
+def get_current_user(
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: Session = Depends(get_db),
+) -> Usuario:
+    """Valida o Bearer token e retorna o usuário autenticado (401 caso contrário)."""
+    nao_autorizado = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Não autenticado",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    if creds is None:
+        raise nao_autorizado
+    sub = decodificar_token(creds.credentials)
+    if sub is None:
+        raise nao_autorizado
+    usuario = UsuarioRepository(db).buscar_por_id(int(sub))
+    if usuario is None:
+        raise nao_autorizado
+    return usuario
