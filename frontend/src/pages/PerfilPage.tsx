@@ -27,7 +27,7 @@ function toPesosIndicadores(p: PesosForm): PesosIndicadores {
 }
 
 const cardBase =
-  "relative w-full rounded-xl border border-border p-6 shadow-sm bg-card";
+  "relative w-full rounded-xl border border-border p-5 shadow-sm bg-card";
 
 interface PerfilConfig {
   tipo: TipoPerfil;
@@ -210,14 +210,19 @@ function PesosCustomizadosForm() {
       </div>
 
       <div className="space-y-3 mb-5">
-        {INDICADORES.map(({ chave, rotulo, dimensao }) => (
+        {INDICADORES.map(({ chave, rotulo }) => (
           <Controller
             key={chave}
             name={chave}
             control={control}
             render={({ field }) => (
-              <div className="flex items-center gap-3">
-                <span className="w-40 text-sm text-gray-600 dark:text-gray-300 shrink-0">{rotulo}</span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-foreground">{rotulo}</span>
+                  <span className="shrink-0 text-sm font-medium tabular-nums text-muted-foreground">
+                    {field.value}%
+                  </span>
+                </div>
                 <input
                   type="range"
                   min={0}
@@ -225,14 +230,8 @@ function PesosCustomizadosForm() {
                   step={1}
                   value={Number(field.value)}
                   onChange={(e) => field.onChange(Number(e.target.value))}
-                  className="flex-1 accent-primary"
+                  className="w-full accent-primary"
                 />
-                <span className="w-10 text-right text-sm tabular-nums font-medium text-gray-700 dark:text-gray-300">
-                  {field.value}%
-                </span>
-                <span className={cn("w-24 text-right text-xs", dimensaoCores[dimensao])}>
-                  {dimensao}
-                </span>
               </div>
             )}
           />
@@ -262,7 +261,7 @@ function PesosCustomizadosForm() {
           <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
             Preview — Top 3 com estes pesos:
           </p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             {previewTop3.map((f, i) => (
               <div key={f.ticker}>
                 <span className="text-xs text-gray-400">{i + 1}. </span>
