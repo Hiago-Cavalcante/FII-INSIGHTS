@@ -18,31 +18,59 @@ export function RegisterPage() {
     }
     try {
       await register(email, senha);
-      navigate("/carteira");
+      navigate("/");
     } catch {
       setErro("Não foi possível cadastrar (e-mail já em uso?).");
     }
   }
 
   return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-sm flex-col justify-center gap-4 px-4">
-      <h1 className="text-xl font-semibold">Criar conta</h1>
+    <div className="flex min-h-screen flex-col justify-center gap-6 bg-background px-6">
+      <div className="text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-2xl">
+          📈
+        </div>
+        <h1 className="text-2xl font-bold text-foreground">Criar conta</h1>
+        <p className="text-sm text-muted-foreground">FII Insights</p>
+      </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           E-mail
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-            className="rounded border px-3 py-2" />
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="rounded-xl border border-input bg-card px-3 py-2.5 text-foreground"
+          />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
           Senha
-          <input type="password" required value={senha} onChange={(e) => setSenha(e.target.value)}
-            className="rounded border px-3 py-2" />
+          <input
+            type="password"
+            required
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            className="rounded-xl border border-input bg-card px-3 py-2.5 text-foreground"
+          />
         </label>
-        {erro && <p role="alert" className="text-sm text-red-600">{erro}</p>}
-        <button type="submit" className="rounded bg-primary px-3 py-2 text-white">Cadastrar</button>
+        {erro && (
+          <p role="alert" className="text-sm text-destructive">
+            {erro}
+          </p>
+        )}
+        <button
+          type="submit"
+          className="rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground"
+        >
+          Cadastrar
+        </button>
       </form>
-      <p className="text-sm">
-        Já tem conta? <Link to="/login" className="underline">Entrar</Link>
+      <p className="text-center text-sm text-muted-foreground">
+        Já tem conta?{" "}
+        <Link to="/login" className="font-medium text-primary underline">
+          Entrar
+        </Link>
       </p>
     </div>
   );
