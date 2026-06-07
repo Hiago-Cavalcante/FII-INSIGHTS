@@ -5,7 +5,6 @@ import { usePerfilStore } from "@/stores/perfilStore";
 import type { TipoPerfil, Classificacao } from "@/types/domain";
 import type { PesosIndicadores } from "@/types/domain";
 import { cn } from "@/lib/utils";
-import { Divider } from "@/components/ui/Divider";
 import { Check } from "lucide-react";
 import { pesosSchema, type PesosForm } from "@/lib/pesosSchema";
 import { simularRanking } from "@/api/endpoints/ranking";
@@ -28,7 +27,7 @@ function toPesosIndicadores(p: PesosForm): PesosIndicadores {
 }
 
 const cardBase =
-  "relative w-full rounded-lg border p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800";
+  "relative w-full rounded-xl border border-border p-6 shadow-sm bg-card";
 
 interface PerfilConfig {
   tipo: TipoPerfil;
@@ -226,7 +225,7 @@ function PesosCustomizadosForm() {
                   step={1}
                   value={Number(field.value)}
                   onChange={(e) => field.onChange(Number(e.target.value))}
-                  className="flex-1 accent-blue-500"
+                  className="flex-1 accent-primary"
                 />
                 <span className="w-10 text-right text-sm tabular-nums font-medium text-gray-700 dark:text-gray-300">
                   {field.value}%
@@ -281,7 +280,7 @@ function PesosCustomizadosForm() {
         <button
           type="submit"
           disabled={Math.abs(soma - 100) > 0.01}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
         >
           Aplicar pesos
         </button>
@@ -302,16 +301,10 @@ export function PerfilPage() {
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
-          Perfil do Investidor
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Escolha como os indicadores influenciam o ranking dos FIIs
-        </p>
-      </div>
-
-      <Divider />
+      <h1 className="text-xl font-semibold text-foreground">Perfil do Investidor</h1>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Escolha como os indicadores influenciam o ranking dos FIIs
+      </p>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {PERFIS.map((perfil) => {
