@@ -11,7 +11,6 @@ import {
 } from "@tanstack/react-table";
 import { useRanking } from "@/hooks/useRanking";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
-import { Divider } from "@/components/ui/Divider";
 import {
   Table,
   TableBody,
@@ -214,6 +213,7 @@ export function RankingPage() {
   // Memoiza colunas para evitar recriação a cada render
   const memoColumns = useMemo(() => columns, []);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- API do TanStack Table não é memoizável; uso intencional
   const table = useReactTable({
     data: fundos,
     columns: memoColumns,
@@ -251,20 +251,11 @@ export function RankingPage() {
 
   return (
     <div>
-      {/* Cabeçalho da página */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
-            Ranking de FIIs
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {fundos.length} fundo{fundos.length !== 1 ? "s" : ""} encontrado
-            {fundos.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-      </div>
-
-      <Divider />
+      {/* contagem (o título "Análise" vem da aba que envolve esta página) */}
+      <p className="mb-3 text-sm text-muted-foreground">
+        {fundos.length} fundo{fundos.length !== 1 ? "s" : ""} encontrado
+        {fundos.length !== 1 ? "s" : ""}
+      </p>
 
       {/* Busca e filtros */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
@@ -280,9 +271,9 @@ export function RankingPage() {
             placeholder="Buscar ticker ou nome..."
             className={cn(
               "w-full sm:w-64 rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors",
-              "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
-              "text-gray-900 dark:text-gray-50 placeholder:text-gray-400",
-              "focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              "bg-card border-border",
+              "text-foreground placeholder:text-muted-foreground",
+              "focus:border-primary focus:ring-1 focus:ring-ring"
             )}
           />
         </div>
@@ -297,8 +288,8 @@ export function RankingPage() {
               className={cn(
                 "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
                 filtro === valor
-                  ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
-                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground border border-border hover:bg-muted"
               )}
             >
               {rotulo}
@@ -308,7 +299,7 @@ export function RankingPage() {
       </div>
 
       {/* Tabela */}
-      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#090E1A] shadow-sm overflow-hidden">
+      <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

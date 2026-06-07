@@ -1,4 +1,3 @@
-import { Divider } from "@/components/ui/Divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
@@ -6,7 +5,7 @@ import { Cpu } from "lucide-react";
 import { useClusters } from "@/hooks/useClusters";
 
 const cardBase =
-  "relative w-full rounded-lg border p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800";
+  "relative w-full rounded-xl border border-border p-6 shadow-sm bg-card";
 
 const CORES_PERFIL: Record<string, { card: string; dot: string }> = {
   conservador: { card: "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20", dot: "bg-emerald-500" },
@@ -26,18 +25,9 @@ export function ClustersPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">
-            Clusters K-Means
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Segmentação automática de FIIs por perfil de risco e retorno
-          </p>
-        </div>
-      </div>
-
-      <Divider />
+      <p className="mb-4 text-sm text-muted-foreground">
+        Segmentação automática de FIIs por perfil de risco e retorno (K-Means)
+      </p>
 
       <div className="mb-8">
         <div className={cn(cardBase)}>
