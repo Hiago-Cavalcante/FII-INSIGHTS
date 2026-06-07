@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useCarteira } from "@/hooks/useCarteira";
+import { MoneyValue } from "@/components/ui/MoneyValue";
+import { ClasseBadge } from "@/components/ui/ClasseBadge";
 
 export function CarteiraPage() {
   const { posicoes, resumo, isLoading, isError, aporte, remover } = useCarteira();
@@ -19,38 +21,41 @@ export function CarteiraPage() {
     setPreco("");
   }
 
-  if (isLoading) return <p className="px-4">Carregando carteira…</p>;
+  if (isLoading) return <p className="text-muted-foreground">Carregando carteira…</p>;
   if (isError)
     return (
-      <p className="px-4" role="alert">
+      <p className="text-destructive" role="alert">
         Erro ao carregar a carteira.
       </p>
     );
 
   return (
-    <div className="flex flex-col gap-4 px-4 py-2">
-      <h1 className="text-xl font-semibold">Minha Carteira</h1>
+    <div className="flex flex-col gap-4">
+      <h1 className="text-xl font-semibold text-foreground">Minha Carteira</h1>
 
       {resumo && (
-        <section className="rounded-lg border p-4">
+        <section className="rounded-2xl border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Patrimônio investido</p>
-          <p className="text-2xl font-bold">R$ {resumo.total_investido}</p>
-          <p className="text-xs text-muted-foreground">
-            FII R$ {resumo.por_classe.FII ?? "0.00"} · FIAGRO R${" "}
-            {resumo.por_classe.FIAGRO ?? "0.00"}
+          <MoneyValue
+            valor={resumo.total_investido}
+            className="text-3xl font-extrabold text-primary"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            FII <MoneyValue valor={resumo.por_classe.FII ?? "0.00"} /> · FIAGRO{" "}
+            <MoneyValue valor={resumo.por_classe.FIAGRO ?? "0.00"} />
           </p>
         </section>
       )}
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded-lg border p-4">
-        <h2 className="text-sm font-medium">Registrar aporte</h2>
+      <form onSubmit={onSubmit} className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4">
+        <h2 className="text-sm font-medium text-foreground">Registrar aporte</h2>
         <input
           aria-label="Ticker"
           placeholder="Ticker (ex: HGLG11)"
           required
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
         />
         <input
           aria-label="Quantidade"
@@ -60,7 +65,7 @@ export function CarteiraPage() {
           required
           value={quantidade}
           onChange={(e) => setQuantidade(e.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
         />
         <input
           aria-label="Preço"
@@ -71,12 +76,12 @@ export function CarteiraPage() {
           required
           value={preco}
           onChange={(e) => setPreco(e.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
         />
         <button
           type="submit"
           disabled={aporte.isPending}
-          className="rounded bg-primary px-3 py-2 text-white"
+          className="rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
         >
           Adicionar
         </button>
@@ -86,23 +91,23 @@ export function CarteiraPage() {
         {posicoes.map((p) => (
           <li
             key={p.id}
-            className="flex items-center justify-between rounded-lg border p-3"
+            className="flex items-center justify-between rounded-2xl border border-border bg-card p-3"
           >
             <div>
-              <p className="font-medium">
-                {p.ticker}{" "}
-                <span className="text-xs text-muted-foreground">{p.classe}</span>
+              <p className="flex items-center gap-2 font-medium text-foreground">
+                {p.ticker}
+                <ClasseBadge classe={p.classe} />
               </p>
               <p className="text-xs text-muted-foreground">
-                {p.quantidade} cotas · PM R$ {p.preco_medio}
+                {p.quantidade} cotas · PM <MoneyValue valor={p.preco_medio} />
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-semibold">R$ {p.valor_investido}</span>
+              <MoneyValue valor={p.valor_investido} className="font-semibold text-foreground" />
               <button
                 aria-label={`Remover ${p.ticker}`}
                 onClick={() => remover.mutate(p.id)}
-                className="text-sm text-red-600"
+                className="text-sm text-destructive"
               >
                 Remover
               </button>

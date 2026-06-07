@@ -32,8 +32,8 @@ describe("CarteiraPage", () => {
     render(<CarteiraPage />);
     expect(screen.getByText("HGLG11")).toBeInTheDocument();
     expect(screen.getByText(/10 cotas/)).toBeInTheDocument();
-    // o valor 1000.00 aparece no resumo e na posição — basta haver ao menos um
-    expect(screen.getAllByText(/1000[.,]00/).length).toBeGreaterThan(0);
+    // o valor formatado (R$ 1.000,00) aparece no resumo e na posição — basta haver ao menos um
+    expect(screen.getAllByText(/1\.000,00/).length).toBeGreaterThan(0);
   });
 
   it("mostra o formulário de aporte", () => {
