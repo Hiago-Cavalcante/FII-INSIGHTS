@@ -69,3 +69,35 @@ body {
   font-family: "Geist Variable", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Liquid glass — moldura translúcida + gradiente de fundo (a leitura fica nos cards sólidos) */
+.app-gradient {
+  background:
+    radial-gradient(125% 80% at 50% -10%, color-mix(in oklch, var(--primary) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, oklch(0.97 0.02 180), var(--background) 42%, oklch(0.96 0.03 174));
+  background-attachment: fixed;
+}
+.dark .app-gradient {
+  background:
+    radial-gradient(125% 80% at 50% -10%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 60%),
+    linear-gradient(180deg, oklch(0.13 0.02 200), var(--background) 45%, oklch(0.1 0.03 195));
+  background-attachment: fixed;
+}
+
+.glass {
+  background-color: color-mix(in oklch, var(--card) 62%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid color-mix(in oklch, white 55%, transparent);
+  box-shadow: 0 8px 32px -10px color-mix(in oklch, var(--primary) 28%, transparent);
+}
+.dark .glass {
+  background-color: color-mix(in oklch, var(--card) 52%, transparent);
+  border-color: color-mix(in oklch, white 14%, transparent);
+}
+
+.glass-panel {
+  background-color: color-mix(in oklch, var(--card) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}

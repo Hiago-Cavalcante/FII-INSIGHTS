@@ -14,7 +14,7 @@ export function InicioPage() {
 
       <Link
         to="/carteira"
-        className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+        className="glass rounded-2xl p-4"
       >
         <p className="text-sm text-muted-foreground">Patrimônio investido</p>
         <MoneyValue

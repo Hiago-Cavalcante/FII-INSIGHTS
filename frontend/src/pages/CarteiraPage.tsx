@@ -34,7 +34,7 @@ export function CarteiraPage() {
       <h1 className="text-xl font-semibold text-foreground">Minha Carteira</h1>
 
       {resumo && (
-        <section className="rounded-2xl border border-border bg-card p-4">
+        <section className="glass rounded-2xl p-4">
           <p className="text-sm text-muted-foreground">Patrimônio investido</p>
           <MoneyValue
             valor={resumo.total_investido}

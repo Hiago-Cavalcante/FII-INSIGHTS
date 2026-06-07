@@ -25,7 +25,7 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col justify-center gap-6 bg-background px-6">
+    <div className="app-gradient flex min-h-screen flex-col justify-center gap-6 px-6">
       <div className="text-center">
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-2xl">
           📈
@@ -33,7 +33,7 @@ export function RegisterPage() {
         <h1 className="text-2xl font-bold text-foreground">Criar conta</h1>
         <p className="text-sm text-muted-foreground">FII Insights</p>
       </div>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
+      <form onSubmit={onSubmit} className="glass flex flex-col gap-3 rounded-2xl p-5">
         <label className="flex flex-col gap-1 text-sm text-foreground">
           E-mail
           <input
