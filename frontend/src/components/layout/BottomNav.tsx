@@ -12,7 +12,7 @@ const ABAS = [
 
 export function BottomNav() {
   return (
-    <nav className="glass-panel fixed inset-x-0 bottom-0 z-30 border-t border-white/30 dark:border-white/10">
+    <nav className="glass-panel fixed inset-x-0 bottom-0 z-30 border-t border-border shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.18)]">
       <div className="mx-auto flex max-w-md items-stretch justify-around">
         {ABAS.map(({ to, label, Icon, end }) => (
           <NavLink
