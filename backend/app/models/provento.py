@@ -26,4 +26,4 @@ class Provento(Base):
     valor_por_cota: Mapped[Decimal] = mapped_column(Numeric(12, 6), nullable=False)
     tipo: Mapped[str] = mapped_column(String(20), nullable=False)
 
-    fundo: Mapped[Fundo] = relationship()
+    fundo: Mapped[Fundo] = relationship(back_populates="proventos")
