@@ -105,3 +105,14 @@ def test_parse_proventos_normaliza_tipo_e_pagamento_nulo():
 def test_parse_proventos_vazio():
     assert parse_proventos({}) == []
     assert parse_proventos({"assetEarningsModels": []}) == []
+
+
+def test_parse_proventos_ignora_data_malformada():
+    payload = {"assetEarningsModels": [
+        {"ed": "32/13/2026", "pd": "15/06/2026", "et": "Rendimento", "v": 1.1},
+        {"ed": "30/04/2026", "pd": "15/05/2026", "et": "Rendimento", "v": 1.0},
+    ]}
+    itens = parse_proventos(payload)
+    # o registro com data malformada é ignorado; o válido permanece
+    assert len(itens) == 1
+    assert itens[0]["valor_por_cota"] == 1.0

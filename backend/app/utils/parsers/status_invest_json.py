@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def calcular_dy_atual(lastdividend: float | None, price: float | None) -> float | None:
@@ -82,16 +85,20 @@ def parse_proventos(payload: Any) -> list[dict[str, Any]]:
     modelos = payload.get("assetEarningsModels", []) if isinstance(payload, dict) else []
     itens: list[dict[str, Any]] = []
     for m in modelos:
-        data_com = _parse_data_br(m.get("ed"))
-        valor = m.get("v")
-        if data_com is None or valor is None:
+        try:
+            data_com = _parse_data_br(m.get("ed"))
+            valor = m.get("v")
+            if data_com is None or valor is None:
+                continue
+            itens.append(
+                {
+                    "data_com": data_com,
+                    "data_pagamento": _parse_data_br(m.get("pd")),
+                    "valor_por_cota": float(valor),
+                    "tipo": _normalizar_tipo(m.get("et") or m.get("etd")),
+                }
+            )
+        except ValueError as e:
+            logger.warning("Provento ignorado (registro inválido %r): %s", m, e)
             continue
-        itens.append(
-            {
-                "data_com": data_com,
-                "data_pagamento": _parse_data_br(m.get("pd")),
-                "valor_por_cota": float(valor),
-                "tipo": _normalizar_tipo(m.get("et") or m.get("etd")),
-            }
-        )
     return itens
