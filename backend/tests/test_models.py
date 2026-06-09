@@ -214,3 +214,25 @@ def test_posicao_persistida(db_session):
     assert p.id is not None
     assert p.usuario.email == "dono@b.com"
     assert p.fundo.ticker == "HGLG11"
+
+
+def test_provento_persiste_e_relaciona_fundo(db_session):
+    from decimal import Decimal
+
+    from app.models.provento import Provento
+
+    f = Fundo(ticker="HGLG11", nome="CSHG Log", classe="FII")
+    db_session.add(f)
+    db_session.flush()
+    p = Provento(
+        fundo_id=f.id,
+        data_com=date(2026, 5, 29),
+        data_pagamento=date(2026, 6, 15),
+        valor_por_cota=Decimal("1.10"),
+        tipo="rendimento",
+    )
+    db_session.add(p)
+    db_session.commit()
+    db_session.refresh(p)
+    assert p.id is not None
+    assert p.fundo.ticker == "HGLG11"
