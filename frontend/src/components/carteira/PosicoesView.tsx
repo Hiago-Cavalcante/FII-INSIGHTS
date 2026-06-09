@@ -66,7 +66,8 @@ export function PosicoesView() {
             <div className="flex items-center gap-3">
               <MoneyValue valor={p.valor_investido} className="font-semibold text-foreground" />
               <button aria-label={`Remover ${p.ticker}`} onClick={() => remover.mutate(p.id)}
-                className="text-sm text-destructive">Remover</button>
+                disabled={remover.isPending}
+                className="text-sm text-destructive disabled:opacity-60">Remover</button>
             </div>
           </li>
         ))}

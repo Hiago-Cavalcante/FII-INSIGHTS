@@ -49,6 +49,10 @@ def calcular_dividendos(db: Session, usuario_id: int, hoje: date | None = None) 
         total_investido += p.valor_investido
         valores = list(
             db.scalars(
+                # Janela ancorada na data_pagamento (não data_com): a média 12m
+                # reflete a renda efetivamente PAGA no período. Proventos declarados
+                # mas ainda não pagos (data_pagamento nula ou futura) ficam de fora,
+                # para não inflar a projeção com dinheiro que ainda não caiu.
                 select(Provento.valor_por_cota).where(
                     Provento.fundo_id == p.fundo_id,
                     Provento.tipo == "rendimento",
