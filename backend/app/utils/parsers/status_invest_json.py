@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date, datetime
 from typing import Any
 
 
@@ -53,3 +54,44 @@ def parse_serie_precos(payload: Any) -> list[float]:
         return []
     pts = obj.get("prices") or []
     return [float(p["price"]) for p in pts if p.get("price") is not None]
+
+
+def _parse_data_br(valor: Any) -> date | None:
+    """Converte 'dd/mm/aaaa' em date. Retorna None para vazio ou '-'."""
+    s = (valor or "").strip() if isinstance(valor, str) else ""
+    if not s or s == "-":
+        return None
+    return datetime.strptime(s, "%d/%m/%Y").date()
+
+
+def _normalizar_tipo(et: Any) -> str:
+    """Mapeia o tipo do provento para o vocabulário interno."""
+    t = (et or "").strip().lower() if isinstance(et, str) else ""
+    if "amortiz" in t:
+        return "amortizacao"
+    if "jcp" in t or "juros" in t:
+        return "jcp"
+    return "rendimento"
+
+
+def parse_proventos(payload: Any) -> list[dict[str, Any]]:
+    """Normaliza o JSON de `companytickerprovents` em itens de provento.
+
+    Descarta itens sem data-com (`ed`) ou sem valor (`v`).
+    """
+    modelos = payload.get("assetEarningsModels", []) if isinstance(payload, dict) else []
+    itens: list[dict[str, Any]] = []
+    for m in modelos:
+        data_com = _parse_data_br(m.get("ed"))
+        valor = m.get("v")
+        if data_com is None or valor is None:
+            continue
+        itens.append(
+            {
+                "data_com": data_com,
+                "data_pagamento": _parse_data_br(m.get("pd")),
+                "valor_por_cota": float(valor),
+                "tipo": _normalizar_tipo(m.get("et") or m.get("etd")),
+            }
+        )
+    return itens
