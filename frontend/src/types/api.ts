@@ -104,6 +104,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/fundos/{ticker}/proventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Proventos Do Fundo
+         * @description Histórico de proventos de um fundo (mais recentes primeiro).
+         */
+        get: operations["proventos_do_fundo_api_v1_fundos__ticker__proventos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ranking": {
         parameters: {
             query?: never;
@@ -292,6 +312,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/carteira/dividendos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dividendos
+         * @description Projeção de renda mensal estimada da carteira (média 12m, só rendimentos).
+         */
+        get: operations["dividendos_api_v1_carteira_dividendos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/carteira/posicoes/{posicao_id}": {
         parameters: {
             query?: never;
@@ -394,6 +434,17 @@ export interface components {
             /** P Vp Medio */
             p_vp_medio: number | null;
         };
+        /** DividendosOut */
+        DividendosOut: {
+            /** Renda Mensal */
+            renda_mensal: string;
+            /** Renda Anual */
+            renda_anual: string;
+            /** Yield On Cost */
+            yield_on_cost: number | null;
+            /** Por Fundo */
+            por_fundo: components["schemas"]["FundoRendaOut"][];
+        };
         /** FundoDetalheOut */
         FundoDetalheOut: {
             /** Id */
@@ -420,6 +471,17 @@ export interface components {
             segmento: string | null;
             /** Gestora */
             gestora: string | null;
+        };
+        /** FundoRendaOut */
+        FundoRendaOut: {
+            /** Ticker */
+            ticker: string;
+            /** Renda Mensal */
+            renda_mensal: string;
+            /** Percentual */
+            percentual: number;
+            /** Sem Dados */
+            sem_dados: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -523,6 +585,20 @@ export interface components {
             quantidade: number;
             /** Preco Medio */
             preco_medio: number | string;
+        };
+        /** ProventoOut */
+        ProventoOut: {
+            /**
+             * Data Com
+             * Format: date
+             */
+            data_com: string;
+            /** Data Pagamento */
+            data_pagamento: string | null;
+            /** Valor Por Cota */
+            valor_por_cota: string;
+            /** Tipo */
+            tipo: string;
         };
         /** RankingItemOut */
         RankingItemOut: {
@@ -751,6 +827,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FundoDetalheOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proventos_do_fundo_api_v1_fundos__ticker__proventos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticker: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProventoOut"][];
                 };
             };
             /** @description Validation Error */
@@ -1030,6 +1137,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResumoOut"];
+                };
+            };
+        };
+    };
+    dividendos_api_v1_carteira_dividendos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DividendosOut"];
                 };
             };
         };
