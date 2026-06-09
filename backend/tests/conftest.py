@@ -1,9 +1,10 @@
 from collections.abc import Generator
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -12,6 +13,7 @@ from app.database import Base, get_db
 from app.main import app
 from app.models.fundo import Fundo
 from app.models.indicador import Indicador
+from app.models.provento import Provento
 
 
 @pytest.fixture
@@ -136,6 +138,17 @@ def client_carteira() -> Generator[tuple[TestClient, object], None, None]:
                 Fundo(ticker="SPAF11", nome="Sparta Fiagro", classe="FIAGRO"),
             ]
         )
+        db.commit()
+
+    with SessionTest() as db:
+        hglg = db.scalar(select(Fundo).where(Fundo.ticker == "HGLG11"))
+        hoje = date.today()
+        db.add_all([
+            Provento(fundo_id=hglg.id, data_com=hoje - timedelta(days=40), tipo="rendimento",
+                     data_pagamento=hoje - timedelta(days=30), valor_por_cota=Decimal("1.0")),
+            Provento(fundo_id=hglg.id, data_com=hoje - timedelta(days=10), tipo="rendimento",
+                     data_pagamento=hoje - timedelta(days=5), valor_por_cota=Decimal("1.2")),
+        ])
         db.commit()
 
     def _override() -> Generator[Session, None, None]:

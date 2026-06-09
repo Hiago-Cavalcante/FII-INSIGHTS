@@ -82,3 +82,21 @@ def test_ticker_fora_do_catalogo_404(client_carteira):
 def test_sem_token_401(client_carteira):
     client, _ = client_carteira
     assert client.get("/api/v1/carteira/posicoes").status_code == 401
+
+
+def test_dividendos_projeta_renda(client_carteira):
+    client, novo_usuario = client_carteira
+    h = novo_usuario()
+    client.post("/api/v1/carteira/posicoes", json={"ticker": "HGLG11", "quantidade": 10, "preco": "100.00"}, headers=h)
+    r = client.get("/api/v1/carteira/dividendos", headers=h)
+    assert r.status_code == 200
+    body = r.json()
+    # média (1.0 + 1.2)/2 = 1.1 × 10 cotas = 11.00
+    assert body["renda_mensal"] == "11.00"
+    assert body["renda_anual"] == "132.00"
+    assert body["por_fundo"][0]["ticker"] == "HGLG11"
+
+
+def test_dividendos_exige_auth(client_carteira):
+    client, _ = client_carteira
+    assert client.get("/api/v1/carteira/dividendos").status_code == 401
