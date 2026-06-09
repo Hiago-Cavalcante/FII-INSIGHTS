@@ -1,11 +1,10 @@
 from datetime import date
 from datetime import date as date_type
 from datetime import datetime as dt
+from decimal import Decimal
 
 import pytest
 from sqlalchemy.exc import IntegrityError
-
-from decimal import Decimal
 
 from app.models.cluster import Cluster, FundoCluster
 from app.models.fundo import Fundo
