@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { useCarteira } from "@/hooks/useCarteira";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useDividendos } from "@/hooks/useDividendos";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
 
 export function InicioPage() {
   const { resumo } = useCarteira();
   const { topFiis } = useDashboard();
+  const { dividendos } = useDividendos();
 
   return (
     <div className="flex flex-col gap-5">
@@ -25,6 +27,15 @@ export function InicioPage() {
           FII <MoneyValue valor={resumo?.por_classe?.FII ?? "0.00"} /> · FIAGRO{" "}
           <MoneyValue valor={resumo?.por_classe?.FIAGRO ?? "0.00"} />
         </p>
+      </Link>
+
+      <Link to="/carteira" className="rounded-2xl border border-border bg-card p-4">
+        <p className="text-sm text-muted-foreground">Renda mensal estimada</p>
+        <MoneyValue
+          valor={dividendos?.renda_mensal ?? "0.00"}
+          className="text-2xl font-bold text-primary"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">média dos últimos 12 meses</p>
       </Link>
 
       <section>
