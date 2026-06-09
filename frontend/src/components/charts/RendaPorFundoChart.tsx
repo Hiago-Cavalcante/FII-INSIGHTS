@@ -14,7 +14,11 @@ export function RendaPorFundoChart({ porFundo }: { porFundo: FundoRenda[] }) {
       <BarChart data={dados} layout="vertical" margin={{ left: 8, right: 8 }}>
         <XAxis type="number" hide />
         <YAxis type="category" dataKey="ticker" width={64} tick={{ fontSize: 12 }} />
-        <Tooltip formatter={(v: number) => `R$ ${v.toFixed(2)}/mês`} />
+        <Tooltip
+          formatter={(v: number | string | readonly (number | string)[]) =>
+            `R$ ${Number(v).toFixed(2)}/mês`
+          }
+        />
         <Bar dataKey="renda" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
