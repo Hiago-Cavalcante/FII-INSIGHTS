@@ -1,8 +1,13 @@
+import json
+from datetime import date
+from pathlib import Path
+
 import pytest
 
 from app.utils.parsers.status_invest_json import (
     calcular_dy_atual,
     normalizar_screener_item,
+    parse_proventos,
     parse_screener,
     parse_serie_precos,
 )
@@ -73,3 +78,41 @@ def test_parse_serie_precos_vazia():
 
 def test_parse_screener_ignora_item_sem_ticker():
     assert parse_screener([{"dy": 9.0}]) == {}
+
+
+_FIXT = Path(__file__).parent / "fixtures" / "proventos_hglg11.json"
+
+
+def test_parse_proventos_extrai_campos():
+    payload = json.loads(_FIXT.read_text(encoding="utf-8"))
+    itens = parse_proventos(payload)
+    # 3 itens válidos: o de "ed" vazio é descartado
+    assert len(itens) == 3
+    primeiro = itens[0]
+    assert primeiro["data_com"] == date(2026, 5, 29)
+    assert primeiro["data_pagamento"] == date(2026, 6, 15)
+    assert primeiro["valor_por_cota"] == 1.1
+    assert primeiro["tipo"] == "rendimento"
+
+
+def test_parse_proventos_normaliza_tipo_e_pagamento_nulo():
+    payload = json.loads(_FIXT.read_text(encoding="utf-8"))
+    amortizacao = parse_proventos(payload)[2]
+    assert amortizacao["tipo"] == "amortizacao"
+    assert amortizacao["data_pagamento"] is None
+
+
+def test_parse_proventos_vazio():
+    assert parse_proventos({}) == []
+    assert parse_proventos({"assetEarningsModels": []}) == []
+
+
+def test_parse_proventos_ignora_data_malformada():
+    payload = {"assetEarningsModels": [
+        {"ed": "32/13/2026", "pd": "15/06/2026", "et": "Rendimento", "v": 1.1},
+        {"ed": "30/04/2026", "pd": "15/05/2026", "et": "Rendimento", "v": 1.0},
+    ]}
+    itens = parse_proventos(payload)
+    # o registro com data malformada é ignorado; o válido permanece
+    assert len(itens) == 1
+    assert itens[0]["valor_por_cota"] == 1.0

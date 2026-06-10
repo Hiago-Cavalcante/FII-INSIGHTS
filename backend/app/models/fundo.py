@@ -11,6 +11,7 @@ from app.database import Base
 if TYPE_CHECKING:
     from app.models.cluster import FundoCluster
     from app.models.indicador import Indicador
+    from app.models.provento import Provento
     from app.models.scoring import ScoringHistorico
 
 
@@ -28,5 +29,6 @@ class Fundo(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     indicadores: Mapped[list[Indicador]] = relationship(back_populates="fundo", cascade="all, delete-orphan")
+    proventos: Mapped[list[Provento]] = relationship(back_populates="fundo", cascade="all, delete-orphan")
     scorings: Mapped[list[ScoringHistorico]] = relationship(back_populates="fundo", cascade="all, delete-orphan")
     fundo_clusters: Mapped[list[FundoCluster]] = relationship(back_populates="fundo", cascade="all, delete-orphan")

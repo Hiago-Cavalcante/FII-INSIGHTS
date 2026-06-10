@@ -1,6 +1,7 @@
 from datetime import date
 from datetime import date as date_type
 from datetime import datetime as dt
+from decimal import Decimal
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -9,6 +10,7 @@ from app.models.cluster import Cluster, FundoCluster
 from app.models.fundo import Fundo
 from app.models.indicador import Indicador
 from app.models.perfil import PerfilInvestidor
+from app.models.provento import Provento
 from app.models.scoring import ScoringHistorico
 
 
@@ -189,9 +191,6 @@ def test_usuario_persistido(db_session):
 
 
 def test_posicao_persistida(db_session):
-    from decimal import Decimal
-
-    from app.models.fundo import Fundo
     from app.models.posicao import Posicao
     from app.models.usuario import Usuario
 
@@ -214,3 +213,22 @@ def test_posicao_persistida(db_session):
     assert p.id is not None
     assert p.usuario.email == "dono@b.com"
     assert p.fundo.ticker == "HGLG11"
+
+
+def test_provento_persiste_e_relaciona_fundo(db_session):
+    f = Fundo(ticker="HGLG11", nome="CSHG Log", classe="FII")
+    db_session.add(f)
+    db_session.flush()
+    p = Provento(
+        fundo_id=f.id,
+        data_com=date(2026, 5, 29),
+        data_pagamento=date(2026, 6, 15),
+        valor_por_cota=Decimal("1.10"),
+        tipo="rendimento",
+    )
+    db_session.add(p)
+    db_session.commit()
+    db_session.refresh(p)
+    assert p.id is not None
+    assert p.fundo.ticker == "HGLG11"
+    assert p in f.proventos

@@ -15,6 +15,7 @@ from app.services.carteira_service import (
     registrar_aporte,
     resumo_carteira,
 )
+from app.services.dividendos_service import calcular_dividendos
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/carteira", tags=["carteira"])
@@ -45,6 +46,20 @@ class ResumoOut(BaseModel):
     total_investido: Decimal
     por_classe: dict[str, Decimal]
     num_posicoes: int
+
+
+class FundoRendaOut(BaseModel):
+    ticker: str
+    renda_mensal: Decimal
+    percentual: float
+    sem_dados: bool
+
+
+class DividendosOut(BaseModel):
+    renda_mensal: Decimal
+    renda_anual: Decimal
+    yield_on_cost: float | None
+    por_fundo: list[FundoRendaOut]
 
 
 def _to_out(p: Posicao) -> PosicaoOut:
@@ -89,6 +104,21 @@ def resumo(
 ) -> ResumoOut:
     """Posição consolidada do usuário (total + por classe)."""
     return ResumoOut(**resumo_carteira(db, usuario.id))
+
+
+@router.get("/dividendos", response_model=DividendosOut)
+def dividendos(
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DividendosOut:
+    """Projeção de renda mensal estimada da carteira (média 12m, só rendimentos)."""
+    dados = calcular_dividendos(db, usuario.id)
+    return DividendosOut(
+        renda_mensal=dados["renda_mensal"],
+        renda_anual=dados["renda_anual"],
+        yield_on_cost=dados["yield_on_cost"],
+        por_fundo=[FundoRendaOut(**f) for f in dados["por_fundo"]],
+    )
 
 
 @router.put("/posicoes/{posicao_id}", response_model=PosicaoOut)

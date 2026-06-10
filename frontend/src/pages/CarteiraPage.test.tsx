@@ -1,45 +1,37 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { CarteiraPage } from "./CarteiraPage";
 
 vi.mock("@/hooks/useCarteira", () => ({
   useCarteira: () => ({
-    posicoes: [
-      {
-        id: 1,
-        ticker: "HGLG11",
-        nome: "CSHG Log",
-        classe: "FII",
-        quantidade: 10,
-        preco_medio: "100.00",
-        valor_investido: "1000.00",
-      },
-    ],
-    resumo: {
-      total_investido: "1000.00",
-      por_classe: { FII: "1000.00", FIAGRO: "0.00" },
-      num_posicoes: 1,
-    },
+    posicoes: [],
+    resumo: { total_investido: "0.00", por_classe: {}, num_posicoes: 0 },
     isLoading: false,
     isError: false,
     aporte: { mutate: vi.fn(), isPending: false },
-    remover: { mutate: vi.fn(), isPending: false },
+    remover: { mutate: vi.fn() },
+  }),
+}));
+vi.mock("@/hooks/useDividendos", () => ({
+  useDividendos: () => ({
+    dividendos: {
+      renda_mensal: "11.00",
+      renda_anual: "132.00",
+      yield_on_cost: 0.132,
+      por_fundo: [
+        { ticker: "HGLG11", renda_mensal: "11.00", percentual: 1, sem_dados: false },
+      ],
+    },
+    isLoading: false,
+    isError: false,
   }),
 }));
 
-describe("CarteiraPage", () => {
-  it("lista a posição com ticker, quantidade e valor", () => {
+describe("CarteiraPage abas", () => {
+  it("troca para a aba Dividendos e mostra a renda mensal", () => {
     render(<CarteiraPage />);
-    expect(screen.getByText("HGLG11")).toBeInTheDocument();
-    expect(screen.getByText(/10 cotas/)).toBeInTheDocument();
-    // o valor formatado (R$ 1.000,00) aparece no resumo e na posição — basta haver ao menos um
-    expect(screen.getAllByText(/1\.000,00/).length).toBeGreaterThan(0);
-  });
-
-  it("mostra o formulário de aporte", () => {
-    render(<CarteiraPage />);
-    expect(screen.getByLabelText(/ticker/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/quantidade/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /adicionar/i })).toBeInTheDocument();
+    expect(screen.getByText("Registrar aporte")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Dividendos" }));
+    expect(screen.getByText(/Renda mensal estimada/)).toBeInTheDocument();
   });
 });

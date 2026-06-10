@@ -1,0 +1,8 @@
+{
+  "assetEarningsModels": [
+    {"ed": "29/05/2026", "pd": "15/06/2026", "et": "Rendimento", "etd": "Rendimento", "v": 1.1, "sv": "1,10000000", "adj": false},
+    {"ed": "30/04/2026", "pd": "15/05/2026", "et": "Rendimento", "etd": "Rendimento", "v": 1.0, "sv": "1,00000000", "adj": false},
+    {"ed": "31/03/2026", "pd": "-", "et": "Amortização", "etd": "Amortização", "v": 0.5, "sv": "0,50000000", "adj": false},
+    {"ed": "", "pd": "", "et": "Rendimento", "etd": "Rendimento", "v": 0.9, "sv": "0,90000000", "adj": false}
+  ]
+}

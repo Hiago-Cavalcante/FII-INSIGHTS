@@ -29,6 +29,18 @@ vi.mock("@/hooks/useDashboard", () => ({
     isError: false,
   }),
 }));
+vi.mock("@/hooks/useDividendos", () => ({
+  useDividendos: () => ({
+    dividendos: {
+      renda_mensal: "412.00",
+      renda_anual: "4944.00",
+      yield_on_cost: 0.102,
+      por_fundo: [],
+    },
+    isLoading: false,
+    isError: false,
+  }),
+}));
 
 describe("InicioPage", () => {
   it("mostra patrimônio e um destaque do ranking", () => {
@@ -39,5 +51,14 @@ describe("InicioPage", () => {
     );
     expect(screen.getByText("R$ 12.400,00")).toBeInTheDocument();
     expect(screen.getByText("HGLG11")).toBeInTheDocument();
+  });
+
+  it("mostra a renda mensal estimada", () => {
+    render(
+      <MemoryRouter>
+        <InicioPage />
+      </MemoryRouter>
+    );
+    expect(screen.getByText(/Renda mensal estimada/)).toBeInTheDocument();
   });
 });
