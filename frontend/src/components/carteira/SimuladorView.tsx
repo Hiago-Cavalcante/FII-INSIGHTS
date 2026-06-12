@@ -95,7 +95,7 @@ export function SimuladorView() {
             min="0"
             step="100"
             value={capitalInicial}
-            onChange={(e) => setCapitalOverride(Number(e.target.value))}
+            onChange={(e) => setCapitalOverride(e.target.value === "" ? null : Number(e.target.value))}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
         </label>
@@ -106,8 +106,8 @@ export function SimuladorView() {
             aria-label="DY mensal"
             type="range"
             min="1"
-            max="20"
-            value={Math.round(taxaMensal * 1000)}
+            max="30"
+            value={Math.min(30, Math.round(taxaMensal * 1000))}
             onChange={(e) => setTaxaOverride(Number(e.target.value) / 1000)}
           />
         </label>
