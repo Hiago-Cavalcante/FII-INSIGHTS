@@ -37,12 +37,18 @@ export function ProjecaoRendaChart({ serie, rendaAlvo }: Props) {
         {rendaAlvo != null && rendaAlvo > 0 && (
           <ReferenceLine
             y={rendaAlvo}
-            stroke="hsl(var(--accent-foreground))"
+            stroke="#f59e0b"
             strokeDasharray="4 4"
-            label={{ value: "meta", position: "insideTopRight", fontSize: 10 }}
+            label={{ value: "meta", position: "insideTopRight", fontSize: 10, fill: "#b45309" }}
           />
         )}
-        <Area dataKey="renda" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.18} />
+        <Area
+          dataKey="renda"
+          stroke="hsl(var(--primary))"
+          fill="hsl(var(--primary))"
+          fillOpacity={0.18}
+          dot={false}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );
