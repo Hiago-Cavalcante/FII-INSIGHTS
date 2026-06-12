@@ -26,6 +26,9 @@ vi.mock("@/hooks/useDividendos", () => ({
     isError: false,
   }),
 }));
+vi.mock("@/components/carteira/SimuladorView", () => ({
+  SimuladorView: () => <div>Renda mensal projetada</div>,
+}));
 
 describe("CarteiraPage abas", () => {
   it("troca para a aba Dividendos e mostra a renda mensal", () => {
@@ -33,5 +36,11 @@ describe("CarteiraPage abas", () => {
     expect(screen.getByText("Registrar aporte")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Dividendos" }));
     expect(screen.getByText(/Renda mensal estimada/)).toBeInTheDocument();
+  });
+
+  it("troca para a aba Simulador", () => {
+    render(<CarteiraPage />);
+    fireEvent.click(screen.getByRole("tab", { name: "Simulador" }));
+    expect(screen.getByText(/Renda mensal projetada/)).toBeInTheDocument();
   });
 });
