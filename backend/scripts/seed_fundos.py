@@ -1,4 +1,4 @@
-"""Seed dos 50 FIIs mais líquidos do Brasil (dados cadastrais estáticos)."""
+"""Seed do catálogo de fundos: FIIs e FIAGROs mais líquidos (dados cadastrais estáticos)."""
 
 from __future__ import annotations
 
@@ -403,7 +403,7 @@ FUNDOS_SEED: list[dict[str, Any]] = [
 
 
 def seed(session_factory: type[sessionmaker] | None = None) -> None:
-    """Popula o banco com os 50 FIIs. Idempotente."""
+    """Popula o banco com os fundos do catálogo (FIIs + FIAGROs). Idempotente."""
     if session_factory is None:
         Base.metadata.create_all(bind=engine)
         session_factory = SessionLocal

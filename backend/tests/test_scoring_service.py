@@ -356,7 +356,7 @@ def test_dy_pontua_por_classe():
     p_fii = calcular_pontuacoes(ind, fundo_fii, [], [])
     p_fiagro = calcular_pontuacoes(ind, fundo_fiagro, [], [])
     assert p_fii["dy_atual"] == 2.0  # >12% na curva FII
-    assert p_fiagro["dy_atual"] == 5.0  # 10-13% na curva FIAGRO
+    assert p_fiagro["dy_atual"] == 5.0  # 12-16% na curva FIAGRO
 
 
 def test_executar_grava_classe_aplicada(db_session):
@@ -395,19 +395,23 @@ def test_executar_grava_classe_aplicada(db_session):
 
 
 def test_score_discriminante_fiagro_vs_fii():
-    # Mesmo FIAGRO com DY alto pontua melhor sob o perfil FIAGRO do que sob FII.
+    # Fundo de DY alto (14%) com demais indicadores medianos, para isolar o efeito do DY:
+    # sob FIAGRO o DY pontua 5 (núcleo saudável 12-16%); sob FII pontua 2 (>12% penalizado).
+    # O contraste tem de cruzar faixa de classificação, não só diferir por pouco.
     ind = _ns_indicador(
-        dy_atual=0.13,
-        dy_12m=0.13,
-        p_vp=0.9,
-        liquidez_diaria=2_000_000,
-        volatilidade_12m=0.08,
-        patrimonio_liquido=1e9,
-        num_cotistas=50_000,
+        dy_atual=0.14,
+        dy_12m=0.14,
+        p_vp=1.0,
+        liquidez_diaria=600_000,
+        volatilidade_12m=0.18,
     )
-    fundo = SimpleNamespace(classe="FIAGRO", segmento="Recebíveis")
-    pont = calcular_pontuacoes(ind, fundo, [1e9], [50_000.0])
+    fundo_fiagro = SimpleNamespace(classe="FIAGRO", segmento=None)
+    fundo_fii = SimpleNamespace(classe="FII", segmento=None)
+    pont_fiagro = calcular_pontuacoes(ind, fundo_fiagro, [], [])
+    pont_fii = calcular_pontuacoes(ind, fundo_fii, [], [])
     pesos_f, dims_f = resolver_perfil("FIAGRO", PESOS_DEFAULT)
-    score_fiagro = calcular_score_com_pesos(pont, pesos_f, dims_f)
-    score_fii = calcular_score_com_pesos(pont, PESOS_DEFAULT, DIMENSOES_FII)
-    assert score_fiagro > score_fii
+    score_fiagro = calcular_score_com_pesos(pont_fiagro, pesos_f, dims_f)
+    score_fii = calcular_score_com_pesos(pont_fii, PESOS_DEFAULT, DIMENSOES_FII)
+    assert score_fiagro - score_fii > 15  # diferença material, não marginal
+    assert classificar_score(score_fiagro) == "Bom"
+    assert classificar_score(score_fii) == "Regular"
