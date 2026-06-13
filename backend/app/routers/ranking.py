@@ -17,6 +17,7 @@ class RankingItemOut(BaseModel):
     ticker: str
     nome: str | None
     segmento: str | None
+    classe: str
     score: float
     classificacao: Literal["Excelente", "Bom", "Regular", "Evitar"]
     dy_atual: float | None

@@ -90,6 +90,32 @@ def test_montar_ranking_coorte_vazia_retorna_lista_vazia():
     assert montar_ranking(db, PESOS_DEFAULT) == []
 
 
+def test_montar_ranking_pontua_por_classe_e_expoe_classe():
+    db = _session()
+    fiagro = Fundo(ticker="RZTR11", nome="Riza Terrax", segmento="Agro - Terras", classe="FIAGRO")
+    db.add(fiagro)
+    db.flush()
+    db.add(
+        Indicador(
+            fundo_id=fiagro.id,
+            data_referencia=date(2026, 6, 1),
+            dy_atual=0.13,
+            dy_12m=0.13,
+            p_vp=0.95,
+            liquidez_diaria=2_000_000.0,
+            volatilidade_12m=0.08,
+            patrimonio_liquido=1_000_000_000.0,
+            num_cotistas=40_000,
+        )
+    )
+    db.commit()
+
+    item = next(i for i in montar_ranking(db, PESOS_DEFAULT) if i.ticker == "RZTR11")
+    assert item.classe == "FIAGRO"
+    # DY 13% sob o perfil FIAGRO não é punido como seria sob a curva FII.
+    assert item.score >= 60
+
+
 def test_montar_ranking_fundo_sem_indicadores_pontua_zero_e_evitar():
     db = _session()
     fundo = Fundo(ticker="ZZZZ11", nome="Fundo Z", segmento=None)
