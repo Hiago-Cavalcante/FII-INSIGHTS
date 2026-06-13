@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { useRanking } from "@/hooks/useRanking";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
+import { ClasseBadge } from "@/components/ui/ClasseBadge";
 import {
   Table,
   TableBody,
@@ -112,6 +113,12 @@ const columns = [
         </p>
       </div>
     ),
+  }),
+
+  // Classe (FII / FIAGRO) — evidencia o scoring diferenciado por classe (RF-14)
+  columnHelper.accessor("classe", {
+    header: "Classe",
+    cell: ({ getValue }) => <ClasseBadge classe={getValue()} />,
   }),
 
   // Segmento
@@ -347,7 +354,7 @@ export function RankingPage() {
                   colSpan={columns.length}
                   className="text-center py-16 text-gray-400 dark:text-gray-500"
                 >
-                  Nenhum FII encontrado para esta classificação.
+                  Nenhum fundo encontrado para esta classificação.
                 </TableCell>
               </TableRow>
             ) : (
