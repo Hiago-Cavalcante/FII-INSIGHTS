@@ -246,9 +246,7 @@ def calcular_pontuacoes(
     return p
 
 
-def resolver_perfil(
-    classe: str, pesos_fii: dict[str, float]
-) -> tuple[dict[str, float], dict[str, list[str]]]:
+def resolver_perfil(classe: str, pesos_fii: dict[str, float]) -> tuple[dict[str, float], dict[str, list[str]]]:
     """Devolve o par (pesos, dimensoes) conforme a classe do fundo (RF-14).
 
     FII usa os pesos recebidos (perfil de risco do usuário); FIAGRO usa o perfil base único.
