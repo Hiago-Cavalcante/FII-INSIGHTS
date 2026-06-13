@@ -608,6 +608,8 @@ export interface components {
             nome: string | null;
             /** Segmento */
             segmento: string | null;
+            /** Classe */
+            classe: string;
             /** Score */
             score: number;
             /**
