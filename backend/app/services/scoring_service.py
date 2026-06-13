@@ -309,14 +309,16 @@ class ScoringService:
                 sem_dados += 1
                 continue
             try:
+                pesos, dimensoes = resolver_perfil(fundo.classe, self._pesos)
                 pontuacoes = calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
-                score = calcular_score_com_pesos(pontuacoes, self._pesos)
+                score = calcular_score_com_pesos(pontuacoes, pesos, dimensoes)
                 classificacao = classificar_score(score)
                 sh = ScoringHistorico(
                     fundo_id=fundo.id,
                     data_execucao=agora,
                     score=score,
                     classificacao=classificacao,
+                    classe_aplicada=fundo.classe,
                 )
                 self._db.add(sh)
                 calculados += 1

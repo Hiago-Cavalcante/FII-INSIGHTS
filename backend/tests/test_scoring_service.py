@@ -358,6 +358,41 @@ def test_dy_pontua_por_classe():
     assert p_fiagro["dy_atual"] == 5.0  # 10-13% na curva FIAGRO
 
 
+def test_executar_grava_classe_aplicada(db_session):
+    from app.models.scoring import ScoringHistorico
+
+    fii = Fundo(ticker="HGLG11", classe="FII", segmento="Logística")
+    fiagro = Fundo(ticker="RZTR11", classe="FIAGRO", segmento="Agro - Terras")
+    db_session.add_all([fii, fiagro])
+    db_session.flush()
+    db_session.add_all(
+        [
+            Indicador(
+                fundo_id=fii.id,
+                data_referencia=date(2026, 6, 1),
+                dy_atual=0.09,
+                p_vp=0.95,
+                liquidez_diaria=2_000_000.0,
+                volatilidade_12m=0.10,
+            ),
+            Indicador(
+                fundo_id=fiagro.id,
+                data_referencia=date(2026, 6, 1),
+                dy_atual=0.13,
+                p_vp=0.98,
+                liquidez_diaria=1_000_000.0,
+                volatilidade_12m=0.08,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    ScoringService(db_session).executar()
+    classes = {s.fundo.ticker: s.classe_aplicada for s in db_session.query(ScoringHistorico).all()}
+    assert classes["HGLG11"] == "FII"
+    assert classes["RZTR11"] == "FIAGRO"
+
+
 def test_score_discriminante_fiagro_vs_fii():
     # Mesmo FIAGRO com DY alto pontua melhor sob o perfil FIAGRO do que sob FII.
     ind = _ns_indicador(
