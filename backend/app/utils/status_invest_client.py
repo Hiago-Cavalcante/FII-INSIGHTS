@@ -22,6 +22,7 @@ class StatusInvestClient:
     TICKERPRICE_URL = "https://statusinvest.com.br/fii/tickerprice"
     PROVENTS_URL = "https://statusinvest.com.br/fii/companytickerprovents"
     PAGINA_URL = "https://statusinvest.com.br/fundos-imobiliarios"
+    PAGINA_URL_FIAGRO = "https://statusinvest.com.br/fiagros"
 
     SCREENER_SEARCH = (
         '{"Segment":"","my_range":"-20;100","dy":{"Item1":null,"Item2":null},"p_vp":{"Item1":null,"Item2":null}}'
@@ -86,8 +87,12 @@ class StatusInvestClient:
         params = {"ticker": ticker, "chartProventsType": "2"}
         return fetch_json_com_retry(self._client, self.PROVENTS_URL, params=params)
 
-    def buscar_pagina_html(self, ticker: str) -> str:
-        """HTML da página do FII (fallback de fundamentais e fonte de vacância)."""
-        url = f"{self.PAGINA_URL}/{ticker}"
+    def buscar_pagina_html(self, ticker: str, classe: str = "FII") -> str:
+        """HTML da página individual do fundo (fallback de fundamentais).
+
+        FIAGRO não aparece no screener de FII; sua página fica em /fiagros/<ticker>.
+        """
+        base = self.PAGINA_URL_FIAGRO if classe == "FIAGRO" else self.PAGINA_URL
+        url = f"{base}/{ticker}"
         with criar_cliente_http() as client:
             return fetch_com_retry(client, url)

@@ -32,6 +32,7 @@ class FakeClient:
         self._serie = serie if serie is not None else _SERIE
         self._html = html
         self.paginas_buscadas: list[str] = []
+        self.classes_buscadas: list[str] = []
 
     def buscar_screener(self) -> list[dict]:
         return self._screener
@@ -39,8 +40,9 @@ class FakeClient:
     def buscar_serie_precos(self, ticker: str) -> list[float]:
         return list(self._serie)
 
-    def buscar_pagina_html(self, ticker: str) -> str:
+    def buscar_pagina_html(self, ticker: str, classe: str = "FII") -> str:
         self.paginas_buscadas.append(ticker)
+        self.classes_buscadas.append(classe)
         return self._html
 
 
@@ -75,6 +77,19 @@ def test_fallback_html_para_ticker_fora_do_screener(db_session):
     ind = _ind(db_session, fundo.id)
     assert ind.dy_12m is not None  # veio do HTML
     assert ind.patrimonio_liquido is not None
+
+
+def test_fallback_html_fiagro_usa_classe_fiagro(db_session):
+    # FIAGRO fora do screener -> coleta deve buscar a página HTML pedindo a classe FIAGRO
+    # (para o client usar a URL /fiagros/<ticker>).
+    FundoRepository(db_session).criar(ticker="KNCA11", segmento="Agro - Recebíveis", classe="FIAGRO")
+    cliente = FakeClient(screener=[_item("OUTRO11")], html=_FIXTURE)
+    with patch("app.services.coleta_service.time.sleep"):
+        resultado = ColetaService(db_session, client=cliente).coletar_todos()
+
+    assert resultado.coletados == 1
+    assert cliente.paginas_buscadas == ["KNCA11"]
+    assert cliente.classes_buscadas == ["FIAGRO"]
 
 
 def test_delay_aplicado_entre_fundos(db_session):

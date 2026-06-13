@@ -312,6 +312,93 @@ FUNDOS_SEED: list[dict[str, Any]] = [
         "segmento": "Fundo de Fundos",
         "gestora": "Credit Suisse Hedging-Griffo",
     },
+    # ── FIAGROs (RF-14) — amostra de fundos do agronegócio com dados reais ──
+    # Coletados via statusinvest.com.br/fiagros/<ticker> (papel/CRA), exceto RZTR11
+    # (terras), que aparece no screener de FII. SPAF11 (acima) é FIAGRO ilíquido.
+    {
+        "ticker": "KNCA11",
+        "nome": "Kinea Crédito Agro FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Kinea Investimentos",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "RZAG11",
+        "nome": "Riza Agro FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Riza Asset Management",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "VGIA11",
+        "nome": "Valora CRA FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Valora Gestão de Investimentos",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "CPTR11",
+        "nome": "Capitânia Agro Strategies FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Capitânia",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "RURA11",
+        "nome": "Itaú Asset Rural FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Itaú Asset Management",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "SNAG11",
+        "nome": "Suno Agro FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Suno Asset",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "JGPX11",
+        "nome": "JGP Crédito Agro FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "JGP Asset Management",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "CRAA11",
+        "nome": "Sparta FIAGRO Cadeias Agro",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Sparta",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "VCRA11",
+        "nome": "Vectis Datagro Crédito Agro FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Vectis Gestão",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "EGAF11",
+        "nome": "Ecoagro FIAGRO Cadeias Agro",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Ecoagro",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "AGRX11",
+        "nome": "Exes Araguaia Agro FIAGRO",
+        "segmento": "Agro - Recebíveis",
+        "gestora": "Exes",
+        "classe": "FIAGRO",
+    },
+    {
+        "ticker": "RZTR11",
+        "nome": "Riza Terrax FIAGRO",
+        "segmento": "Agro - Terras",
+        "gestora": "Riza Asset Management",
+        "classe": "FIAGRO",
+    },
 ]
 
 

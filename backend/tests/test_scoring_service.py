@@ -279,15 +279,16 @@ def test_score_conservador_com_estrutura_so_segmento_nao_quebra():
 
 
 def test_pontuar_dy_fiagro_faixas():
-    assert pontuar_dy_fiagro(0.07) == 1  # <=8%
-    assert pontuar_dy_fiagro(0.08) == 1
-    assert pontuar_dy_fiagro(0.09) == 3  # 8-10%
-    assert pontuar_dy_fiagro(0.10) == 3
-    assert pontuar_dy_fiagro(0.12) == 5  # 10-13%
-    assert pontuar_dy_fiagro(0.13) == 5
-    assert pontuar_dy_fiagro(0.15) == 4  # 13-16%
-    assert pontuar_dy_fiagro(0.16) == 4
-    assert pontuar_dy_fiagro(0.18) == 2  # >16%
+    # Calibrada contra os DYs reais coletados (agro-CRA roda 14-20% com Selic alta).
+    assert pontuar_dy_fiagro(0.08) == 1  # <=9% (atipicamente baixo p/ FIAGRO)
+    assert pontuar_dy_fiagro(0.09) == 1
+    assert pontuar_dy_fiagro(0.11) == 3  # 9-12% (modesto)
+    assert pontuar_dy_fiagro(0.12) == 3
+    assert pontuar_dy_fiagro(0.14) == 5  # 12-16% (núcleo saudável)
+    assert pontuar_dy_fiagro(0.16) == 5
+    assert pontuar_dy_fiagro(0.18) == 4  # 16-20% (alto, comum)
+    assert pontuar_dy_fiagro(0.20) == 4
+    assert pontuar_dy_fiagro(0.22) == 2  # >20% (cautela: risco de crédito/retorno de capital)
 
 
 def test_pesos_fiagro_somam_um():

@@ -101,14 +101,19 @@ def pontuar_dy(valor: float) -> int:
 
 
 def pontuar_dy_fiagro(valor: float) -> int:
-    """Faixa de DY do perfil FIAGRO (yield estruturalmente mais alto que FII de tijolo)."""
-    if valor <= 0.08:
+    """Faixa de DY do perfil FIAGRO, calibrada contra os DYs reais coletados.
+
+    FIAGRO de papel (agro-CRA) é atrelado a CDI+/IPCA+: com Selic alta, o núcleo
+    saudável roda 12-16%; 16-20% é alto porém comum; acima de 20% acende cautela
+    (risco de crédito ou distribuição via retorno de capital).
+    """
+    if valor <= 0.09:
         return 1
-    if valor <= 0.10:
+    if valor <= 0.12:
         return 3
-    if valor <= 0.13:
-        return 5
     if valor <= 0.16:
+        return 5
+    if valor <= 0.20:
         return 4
     return 2
 

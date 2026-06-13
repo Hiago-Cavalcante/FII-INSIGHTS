@@ -72,12 +72,17 @@ A ausência de indicadores de crédito de FIAGRO é registrada como **limitaçã
 
 ### 3.2 Faixa de DY FIAGRO (1–5)
 
-Ponto de partida, **a ser recalibrado contra os DYs reais coletados** durante a implementação:
+**Recalibrada contra os DYs reais coletados** na implementação (os agro-CRA observados rodam
+14–20%, mediana ~16% — bem acima do que a curva inicial assumia):
 
-`≤8% = 1 · 8–10% = 3 · 10–13% = 5 · 13–16% = 4 · >16% = 2`
+`≤9% = 1 · 9–12% = 3 · 12–16% = 5 · 16–20% = 4 · >20% = 2`
 
-Racional: FIAGRO de papel atrelado a CDI+/IPCA+; com Selic alta, 11–13% é saudável; >16% sinaliza
-insustentabilidade/risco. Contrasta com a curva FII, que satura o "5" já em 8–10% e pune >12%.
+Racional: FIAGRO de papel atrelado a CDI+/IPCA+; com Selic alta, o núcleo saudável roda 12–16%;
+16–20% é alto porém comum; acima de 20% acende cautela (risco de crédito ou distribuição via retorno
+de capital). Contrasta com a curva FII, que satura o "5" já em 8–10% e pune >12%.
+
+> Calibração feita sobre a amostra real coletada via `statusinvest.com.br/fiagros/{ticker}`
+> (KNCA11 14,3% · RZAG11 16,7% · VGIA11 16,1% · RURA11 15,7% · SNAG11 14,1% · etc.).
 
 ### 3.3 Faixas compartilhadas (sem alteração)
 
