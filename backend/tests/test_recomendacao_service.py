@@ -71,6 +71,14 @@ def test_rebalanceamento_equilibrado_dentro_da_banda():
     assert all(c["sugestao"] == "Equilibrado" for c in r["classes"])  # 82/18 dentro de ±5pp
 
 
+def test_rebalanceamento_borda_exata_da_banda_e_equilibrado():
+    # 85/15 com alvo 80/20 -> desvio exatamente ±5pp; a banda é inclusiva (≤) -> Equilibrado.
+    r = sugerir_rebalanceamento(
+        {"FII": Decimal("8500"), "FIAGRO": Decimal("1500")}, Decimal("10000"), alvo_fii=0.80
+    )
+    assert all(c["sugestao"] == "Equilibrado" for c in r["classes"])
+
+
 def test_rebalanceamento_carteira_vazia():
     r = sugerir_rebalanceamento({"FII": Decimal("0"), "FIAGRO": Decimal("0")}, Decimal("0"), alvo_fii=0.80)
     assert r["total_investido"] == Decimal("0")

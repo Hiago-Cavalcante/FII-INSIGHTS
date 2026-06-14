@@ -11,12 +11,11 @@ from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import TypedDict
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.provento import Provento
 from app.repositories.indicador_repository import IndicadorRepository
 from app.repositories.posicao_repository import PosicaoRepository
+from app.repositories.provento_repository import ProventoRepository
 
 _CENTAVO = Decimal("0.01")
 
@@ -59,18 +58,16 @@ def calcular_preco_teto(proventos_12m: Decimal | None, yield_alvo: float) -> Dec
 
 
 def proventos_ultimos_12m(db: Session, fundo_id: int, hoje: date | None = None) -> Decimal:
-    """Soma o valor_por_cota dos rendimentos PAGOS nos últimos 12 meses."""
+    """SOMA o valor_por_cota dos rendimentos pagos nos últimos 12 meses (provento anual).
+
+    Convenção deliberada do método Bazin: usa a SOMA trailing-12m (o "dividendo anual"
+    realizado). Difere de propósito da aba de Dividendos, que projeta renda futura por
+    média×12 (suavizada). Mesma janela/fonte (ProventoRepository.valores_rendimentos_pagos),
+    agregação distinta por finalidade.
+    """
     hoje = hoje or date.today()
     inicio = hoje - timedelta(days=365)
-    valores = db.scalars(
-        select(Provento.valor_por_cota).where(
-            Provento.fundo_id == fundo_id,
-            Provento.tipo == "rendimento",
-            Provento.data_pagamento.is_not(None),
-            Provento.data_pagamento >= inicio,
-            Provento.data_pagamento <= hoje,
-        )
-    )
+    valores = ProventoRepository(db).valores_rendimentos_pagos(fundo_id, inicio, hoje)
     return sum(valores, Decimal("0"))
 
 
