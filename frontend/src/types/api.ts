@@ -332,6 +332,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/carteira/recomendacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recomendacoes
+         * @description Preço-teto (Bazin) dos fundos da carteira + rebalanceamento por classe (RF-27/29).
+         */
+        get: operations["recomendacoes_api_v1_carteira_recomendacoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/carteira/posicoes/{posicao_id}": {
         parameters: {
             query?: never;
@@ -388,6 +408,19 @@ export interface components {
             quantidade: number;
             /** Preco */
             preco: number | string;
+        };
+        /** ClasseRebalOut */
+        ClasseRebalOut: {
+            /** Classe */
+            classe: string;
+            /** Atual Pct */
+            atual_pct: number;
+            /** Alvo Pct */
+            alvo_pct: number;
+            /** Desvio Pct */
+            desvio_pct: number;
+            /** Sugestao */
+            sugestao: string;
         };
         /** ClusterItemOut */
         ClusterItemOut: {
@@ -586,6 +619,25 @@ export interface components {
             /** Preco Medio */
             preco_medio: number | string;
         };
+        /** PrecoTetoOut */
+        PrecoTetoOut: {
+            /** Ticker */
+            ticker: string;
+            /** Nome */
+            nome: string | null;
+            /** Classe */
+            classe: string;
+            /** Preco Medio */
+            preco_medio: string;
+            /** Preco Atual */
+            preco_atual: string | null;
+            /** Preco Teto */
+            preco_teto: string | null;
+            /** Margem Seguranca */
+            margem_seguranca: number | null;
+            /** Status */
+            status: string;
+        };
         /** ProventoOut */
         ProventoOut: {
             /**
@@ -635,6 +687,21 @@ export interface components {
             patrimonio_liquido: number | null;
             /** Num Cotistas */
             num_cotistas: number | null;
+        };
+        /** RebalanceamentoOut */
+        RebalanceamentoOut: {
+            /** Total Investido */
+            total_investido: string;
+            /** Alvo Fii */
+            alvo_fii: number;
+            /** Classes */
+            classes: components["schemas"]["ClasseRebalOut"][];
+        };
+        /** RecomendacoesOut */
+        RecomendacoesOut: {
+            /** Precos Teto */
+            precos_teto: components["schemas"]["PrecoTetoOut"][];
+            rebalanceamento: components["schemas"]["RebalanceamentoOut"];
         };
         /** RegistroIn */
         RegistroIn: {
@@ -1159,6 +1226,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DividendosOut"];
+                };
+            };
+        };
+    };
+    recomendacoes_api_v1_carteira_recomendacoes_get: {
+        parameters: {
+            query?: {
+                yield_fii?: number;
+                yield_fiagro?: number;
+                alvo_fii?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecomendacoesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

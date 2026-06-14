@@ -32,6 +32,7 @@ class StatusInvestParser:
             "num_cotistas": self._br_int(self._valor(soup, r"N[ºo°] de Cotistas")),
             "patrimonio_liquido": self._patrimonio(html),
             "dy_atual": calcular_dy_atual(ultimo, preco),
+            "preco_atual": preco,
         }
 
     # ── helpers de busca ──────────────────────────────────────────────

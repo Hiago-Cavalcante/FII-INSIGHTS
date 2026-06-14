@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.posicao import Posicao
-from app.models.provento import Provento
+from app.repositories.provento_repository import ProventoRepository
 
 _CENTAVO = Decimal("0.01")
 
@@ -45,23 +45,12 @@ def calcular_dividendos(db: Session, usuario_id: int, hoje: date | None = None) 
     renda_total = Decimal("0.00")
     parciais: list[tuple[str, Decimal, bool]] = []
 
+    repo = ProventoRepository(db)
     for p in posicoes:
         total_investido += p.valor_investido
-        valores = list(
-            db.scalars(
-                # Janela ancorada na data_pagamento (não data_com): a média 12m
-                # reflete a renda efetivamente PAGA no período. Proventos declarados
-                # mas ainda não pagos (data_pagamento nula ou futura) ficam de fora,
-                # para não inflar a projeção com dinheiro que ainda não caiu.
-                select(Provento.valor_por_cota).where(
-                    Provento.fundo_id == p.fundo_id,
-                    Provento.tipo == "rendimento",
-                    Provento.data_pagamento.is_not(None),
-                    Provento.data_pagamento >= inicio,
-                    Provento.data_pagamento <= hoje,
-                )
-            )
-        )
+        # Mesma janela/fonte do preço-teto (rendimentos pagos nos últimos 12m); aqui a
+        # projeção usa a MÉDIA×12 (renda futura suavizada), não a soma trailing do Bazin.
+        valores = repo.valores_rendimentos_pagos(p.fundo_id, inicio, hoje)
         if valores:
             media = sum(valores, Decimal("0")) / Decimal(len(valores))
             renda_fundo = _arredondar(media * Decimal(p.quantidade))

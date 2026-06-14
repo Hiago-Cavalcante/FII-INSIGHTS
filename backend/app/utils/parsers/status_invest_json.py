@@ -34,6 +34,7 @@ def normalizar_screener_item(item: dict[str, Any]) -> dict[str, Any]:
         "patrimonio_liquido": fnum(item.get("patrimonio")),
         "num_cotistas": int(cot) if cot is not None else None,
         "dy_atual": calcular_dy_atual(item.get("lastdividend"), item.get("price")),
+        "preco_atual": fnum(item.get("price")),
     }
 
 

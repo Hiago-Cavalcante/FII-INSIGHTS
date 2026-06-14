@@ -100,3 +100,29 @@ def test_dividendos_projeta_renda(client_carteira):
 def test_dividendos_exige_auth(client_carteira):
     client, _ = client_carteira
     assert client.get("/api/v1/carteira/dividendos").status_code == 401
+
+
+def test_recomendacoes_exige_auth(client_carteira):
+    client, _ = client_carteira
+    r = client.get("/api/v1/carteira/recomendacoes")
+    assert r.status_code in (401, 403)
+
+
+def test_recomendacoes_retorna_estrutura(client_carteira):
+    client, novo_usuario = client_carteira
+    h = novo_usuario("rec@b.com")
+    client.post("/api/v1/carteira/posicoes", json={"ticker": "HGLG11", "quantidade": 10, "preco": "100.00"}, headers=h)
+    r = client.get("/api/v1/carteira/recomendacoes", headers=h)
+    assert r.status_code == 200
+    body = r.json()
+    assert "precos_teto" in body and "rebalanceamento" in body
+    assert body["rebalanceamento"]["alvo_fii"] == 0.8  # default
+    assert any(p["ticker"] == "HGLG11" for p in body["precos_teto"])
+
+
+def test_recomendacoes_respeita_query_params(client_carteira):
+    client, novo_usuario = client_carteira
+    h = novo_usuario("rec2@b.com")
+    client.post("/api/v1/carteira/posicoes", json={"ticker": "HGLG11", "quantidade": 10, "preco": "100.00"}, headers=h)
+    r = client.get("/api/v1/carteira/recomendacoes?alvo_fii=0.6", headers=h)
+    assert r.json()["rebalanceamento"]["alvo_fii"] == 0.6

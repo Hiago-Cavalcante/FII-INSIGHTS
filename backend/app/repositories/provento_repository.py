@@ -50,3 +50,20 @@ class ProventoRepository:
         """Proventos de um fundo, mais recentes primeiro."""
         stmt = select(Provento).where(Provento.fundo_id == fundo_id).order_by(Provento.data_com.desc())
         return list(self.db.scalars(stmt))
+
+    def valores_rendimentos_pagos(self, fundo_id: int, inicio: date, fim: date) -> list[Decimal]:
+        """valor_por_cota dos rendimentos PAGOS no período [inicio, fim] (por data_pagamento).
+
+        Janela ancorada na data_pagamento (não data_com): reflete a renda efetivamente
+        PAGA no período. Proventos declarados mas ainda não pagos (data_pagamento nula ou
+        futura) ficam de fora. Fonte única usada pela projeção de dividendos (média) e pelo
+        preço-teto Bazin (soma).
+        """
+        stmt = select(Provento.valor_por_cota).where(
+            Provento.fundo_id == fundo_id,
+            Provento.tipo == "rendimento",
+            Provento.data_pagamento.is_not(None),
+            Provento.data_pagamento >= inicio,
+            Provento.data_pagamento <= fim,
+        )
+        return list(self.db.scalars(stmt))

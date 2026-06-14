@@ -21,6 +21,7 @@ def test_extrair_fundamentais_pagina_real(parser):
     assert d["num_cotistas"] == 565_330
     assert d["patrimonio_liquido"] == pytest.approx(7_234_911_198.0, rel=1e-6)
     assert d["dy_atual"] == pytest.approx(0.0848, abs=1e-3)  # 1,10 × 12 / 155,71
+    assert d["preco_atual"] == pytest.approx(155.71, abs=1e-2)  # "Valor atual" da página
 
 
 def test_extrair_fundamentais_retorna_todas_as_chaves(parser):
@@ -32,6 +33,7 @@ def test_extrair_fundamentais_retorna_todas_as_chaves(parser):
         "num_cotistas",
         "patrimonio_liquido",
         "dy_atual",
+        "preco_atual",
     }
 
 
