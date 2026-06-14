@@ -39,6 +39,13 @@ def test_normalizar_screener_item_campos_nulos():
     assert out["p_vp"] is None
     assert out["dy_atual"] is None
     assert out["num_cotistas"] is None
+    assert out["preco_atual"] is None
+
+
+def test_normalizar_screener_inclui_preco_atual():
+    # RF-29: o preço atual (campo `price`) é necessário para o preço-teto.
+    out = normalizar_screener_item({"ticker": "X", "price": 100.5, "lastdividend": 1.0, "dy": 8.0})
+    assert out["preco_atual"] == pytest.approx(100.5)
 
 
 def test_calcular_dy_atual():
