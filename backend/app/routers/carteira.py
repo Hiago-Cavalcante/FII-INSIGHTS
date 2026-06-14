@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -16,6 +16,7 @@ from app.services.carteira_service import (
     resumo_carteira,
 )
 from app.services.dividendos_service import calcular_dividendos
+from app.services.recomendacao_service import analisar_precos_teto, sugerir_rebalanceamento
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/carteira", tags=["carteira"])
@@ -60,6 +61,36 @@ class DividendosOut(BaseModel):
     renda_anual: Decimal
     yield_on_cost: float | None
     por_fundo: list[FundoRendaOut]
+
+
+class PrecoTetoOut(BaseModel):
+    ticker: str
+    nome: str | None
+    classe: str
+    preco_medio: Decimal
+    preco_atual: Decimal | None
+    preco_teto: Decimal | None
+    margem_seguranca: float | None
+    status: str
+
+
+class ClasseRebalOut(BaseModel):
+    classe: str
+    atual_pct: float
+    alvo_pct: float
+    desvio_pct: float
+    sugestao: str
+
+
+class RebalanceamentoOut(BaseModel):
+    total_investido: Decimal
+    alvo_fii: float
+    classes: list[ClasseRebalOut]
+
+
+class RecomendacoesOut(BaseModel):
+    precos_teto: list[PrecoTetoOut]
+    rebalanceamento: RebalanceamentoOut
 
 
 def _to_out(p: Posicao) -> PosicaoOut:
@@ -118,6 +149,28 @@ def dividendos(
         renda_anual=dados["renda_anual"],
         yield_on_cost=dados["yield_on_cost"],
         por_fundo=[FundoRendaOut(**f) for f in dados["por_fundo"]],
+    )
+
+
+@router.get("/recomendacoes", response_model=RecomendacoesOut)
+def recomendacoes(
+    yield_fii: float = Query(0.08, gt=0),
+    yield_fiagro: float = Query(0.13, gt=0),
+    alvo_fii: float = Query(0.80, ge=0, le=1),
+    usuario: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RecomendacoesOut:
+    """Preço-teto (Bazin) dos fundos da carteira + rebalanceamento por classe (RF-27/29)."""
+    precos = analisar_precos_teto(db, usuario.id, yield_fii, yield_fiagro)
+    resumo_dados = resumo_carteira(db, usuario.id)
+    rebal = sugerir_rebalanceamento(resumo_dados["por_classe"], resumo_dados["total_investido"], alvo_fii)
+    return RecomendacoesOut(
+        precos_teto=[PrecoTetoOut(**p) for p in precos],
+        rebalanceamento=RebalanceamentoOut(
+            total_investido=rebal["total_investido"],
+            alvo_fii=rebal["alvo_fii"],
+            classes=[ClasseRebalOut(**c) for c in rebal["classes"]],
+        ),
     )
 
 
