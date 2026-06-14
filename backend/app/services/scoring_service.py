@@ -256,14 +256,14 @@ def resolver_perfil(classe: str, pesos_fii: dict[str, float]) -> tuple[dict[str,
     return pesos_fii, DIMENSOES_FII
 
 
-def calcular_score_com_pesos(
+def _pesos_efetivos(
     pontuacoes: dict[str, float | None],
     pesos: dict[str, float],
-    dimensoes: dict[str, list[str]] = DIMENSOES_FII,
-) -> float:
-    """Score 0-100 com redistribuição proporcional dentro de cada dimensão."""
-    pesos_efetivos: dict[str, float] = {}
-
+    dimensoes: dict[str, list[str]],
+) -> dict[str, float]:
+    """Pesos por indicador presente, com o peso de cada dimensão redistribuído entre
+    os indicadores presentes dela. Fonte única usada pelo score e pela sua decomposição."""
+    efetivos: dict[str, float] = {}
     for indicadores_dim in dimensoes.values():
         presentes = [k for k in indicadores_dim if pontuacoes.get(k) is not None]
         if not presentes:
@@ -274,17 +274,26 @@ def calcular_score_com_pesos(
             # Os únicos indicadores presentes têm peso 0: a dimensão não contribui.
             continue
         for k in presentes:
-            pesos_efetivos[k] = pesos[k] * (peso_dim / peso_presente)
+            efetivos[k] = pesos[k] * (peso_dim / peso_presente)
+    return efetivos
 
-    if not pesos_efetivos:
+
+def calcular_score_com_pesos(
+    pontuacoes: dict[str, float | None],
+    pesos: dict[str, float],
+    dimensoes: dict[str, list[str]] = DIMENSOES_FII,
+) -> float:
+    """Score 0-100 com redistribuição proporcional dentro de cada dimensão."""
+    efetivos = _pesos_efetivos(pontuacoes, pesos, dimensoes)
+    if not efetivos:
         return 0.0
 
-    peso_total = sum(pesos_efetivos.values())
+    peso_total = sum(efetivos.values())
     total = 0.0
-    for k in pesos_efetivos:
+    for k in efetivos:
         pts = pontuacoes[k]
         assert pts is not None  # garantido pela construção de pesos_efetivos
-        total += (pesos_efetivos[k] / peso_total) * (pts / 5.0) * 100
+        total += (efetivos[k] / peso_total) * (pts / 5.0) * 100
     return round(total, 2)
 
 
@@ -306,24 +315,13 @@ def detalhar_score(
     contribuições é igual ao score. Base factual para o assistente (RF-38) e a
     ficha de análise (RF-18).
     """
-    pesos_efetivos: dict[str, float] = {}
-    for indicadores_dim in dimensoes.values():
-        presentes = [k for k in indicadores_dim if pontuacoes.get(k) is not None]
-        if not presentes:
-            continue
-        peso_dim = sum(pesos[k] for k in indicadores_dim)
-        peso_presente = sum(pesos[k] for k in presentes)
-        if peso_presente == 0:
-            continue
-        for k in presentes:
-            pesos_efetivos[k] = pesos[k] * (peso_dim / peso_presente)
-
-    if not pesos_efetivos:
+    efetivos = _pesos_efetivos(pontuacoes, pesos, dimensoes)
+    if not efetivos:
         return []
 
-    peso_total = sum(pesos_efetivos.values())
+    peso_total = sum(efetivos.values())
     detalhes: list[ContribIndicador] = []
-    for k, pe in pesos_efetivos.items():
+    for k, pe in efetivos.items():
         pts = pontuacoes[k]
         assert pts is not None
         peso_norm = pe / peso_total

@@ -29,7 +29,7 @@ class ExplicarIn(BaseModel):
 
 class FundoResumoOut(BaseModel):
     ticker: str
-    score: float
+    score: float | None
     classificacao: str
 
 
@@ -54,10 +54,10 @@ def explicar(
         raise HTTPException(status_code=503, detail="Assistente indisponível no momento") from None
     fundo = out["fundo"]
     return ExplicarOut(
-        resposta=str(out["resposta"]),
+        resposta=out["resposta"],
         fundo=FundoResumoOut(
-            ticker=str(fundo["ticker"]),
-            score=float(fundo["score"]),  # type: ignore[arg-type]
-            classificacao=str(fundo["classificacao"]),
+            ticker=fundo["ticker"],
+            score=fundo["score"],
+            classificacao=fundo["classificacao"],
         ),
     )

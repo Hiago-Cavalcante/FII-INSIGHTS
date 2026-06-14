@@ -33,14 +33,20 @@ class ContextoFundo(TypedDict):
     nome: str | None
     classe: str
     segmento: str | None
-    score: float
-    classificacao: str
+    score: float | None  # None => fundo sem indicadores calculados (não há score)
+    classificacao: str  # "Sem dados" quando score is None
     indicadores: list[ContribIndicador]
+
+
+class FundoResumo(TypedDict):
+    ticker: str
+    score: float | None
+    classificacao: str
 
 
 class RespostaAssistente(TypedDict):
     resposta: str
-    fundo: dict[str, object]
+    fundo: FundoResumo
 
 
 def montar_contexto_fundo(db: Session, ticker: str, nivel: Nivel) -> ContextoFundo:
@@ -56,11 +62,15 @@ def montar_contexto_fundo(db: Session, ticker: str, nivel: Nivel) -> ContextoFun
 
     pesos, dimensoes = resolver_perfil(fundo.classe, PESOS_DEFAULT)
     if ind is None:
-        score: float = 0.0
+        # Sem indicadores coletados: NÃO inventar score/classificação (RNF-04).
+        score: float | None = None
+        classificacao = "Sem dados"
         detalhes: list[ContribIndicador] = []
     else:
         pont = calcular_pontuacoes(ind, fundo, todos_pl, todos_cot)
-        score = calcular_score_com_pesos(pont, pesos, dimensoes)
+        valor = calcular_score_com_pesos(pont, pesos, dimensoes)
+        score = valor
+        classificacao = classificar_score(valor)
         detalhes = detalhar_score(pont, pesos, dimensoes)
 
     return {
@@ -69,7 +79,7 @@ def montar_contexto_fundo(db: Session, ticker: str, nivel: Nivel) -> ContextoFun
         "classe": fundo.classe,
         "segmento": fundo.segmento,
         "score": score,
-        "classificacao": classificar_score(score),
+        "classificacao": classificacao,
         "indicadores": detalhes,
     }
 
@@ -90,8 +100,18 @@ def _system_prompt(nivel: Nivel) -> str:
 
 
 def _formatar_contexto(ctx: ContextoFundo) -> str:
+    nome = ctx["nome"] or "sem nome cadastrado"
+    segmento = ctx["segmento"] or "segmento não informado"
+    cabecalho = f"Fundo: {ctx['ticker']} ({nome}) — classe {ctx['classe']}, segmento {segmento}."
+    if ctx["score"] is None or not ctx["indicadores"]:
+        # Sem dados: não há score para explicar. Não inventar nota nem classificação.
+        return (
+            f"{cabecalho}\n"
+            "Este fundo ainda não tem indicadores coletados, então não há score calculado "
+            "para explicar. Informe isso ao investidor com transparência."
+        )
     linhas = [
-        f"Fundo: {ctx['ticker']} ({ctx['nome']}) — classe {ctx['classe']}, segmento {ctx['segmento']}.",
+        cabecalho,
         f"Score: {ctx['score']:.1f}/100 → classificação {ctx['classificacao']}.",
         "Contribuição de cada indicador (pontuação 1-5, peso, pontos que adiciona ao score):",
     ]
@@ -100,8 +120,6 @@ def _formatar_contexto(ctx: ContextoFundo) -> str:
             f"- {i['indicador']}: nota {i['pontuacao']:.0f}/5, peso {i['peso_efetivo'] * 100:.0f}%, "
             f"contribui {i['contribuicao']:.1f} pontos."
         )
-    if not ctx["indicadores"]:
-        linhas.append("- (sem indicadores disponíveis para este fundo)")
     return "\n".join(linhas)
 
 

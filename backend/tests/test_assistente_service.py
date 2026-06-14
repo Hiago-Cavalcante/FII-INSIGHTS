@@ -52,8 +52,26 @@ def test_responder_injeta_grounding_e_restricao(db_session):
     assert "Por que essa nota?" in fake.ultimo_prompt
     assert "somente" in fake.ultimo_system.lower()
     assert "iniciante" in fake.ultimo_system.lower()
+    # a decomposição factual (grounding) chega ao prompt:
+    assert "dy_atual" in fake.ultimo_prompt
+    assert "contribui" in fake.ultimo_prompt
 
 
 def test_responder_ticker_inexistente(db_session):
     with pytest.raises(FundoNaoEncontrado):
         responder(db_session, "ZZZZ11", "?", nivel="iniciante", llm=FakeLLM())
+
+
+def test_sem_indicadores_nao_inventa_score(db_session):
+    # RNF-04: fundo sem indicadores NÃO pode virar score 0 / "Evitar" no grounding.
+    db_session.add(Fundo(ticker="NOVO11", nome="Novo", segmento="Logística", classe="FII"))
+    db_session.commit()
+    ctx = montar_contexto_fundo(db_session, "NOVO11", nivel="iniciante")
+    assert ctx["score"] is None
+    assert ctx["classificacao"] == "Sem dados"
+    assert ctx["indicadores"] == []
+
+    fake = FakeLLM("ok")
+    responder(db_session, "NOVO11", "Por que?", nivel="iniciante", llm=fake)
+    assert "Evitar" not in fake.ultimo_prompt
+    assert "não há score" in fake.ultimo_prompt.lower() or "sem indicadores" in fake.ultimo_prompt.lower()
