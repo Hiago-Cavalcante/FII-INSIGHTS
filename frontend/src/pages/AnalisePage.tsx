@@ -2,8 +2,15 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { RankingPage } from "./RankingPage";
 import { ClustersPage } from "./ClustersPage";
+import { ComparadorPage } from "./ComparadorPage";
 
-type Sub = "ranking" | "clusters";
+type Sub = "ranking" | "clusters" | "comparar";
+
+const ROTULOS: Record<Sub, string> = {
+  ranking: "Ranking",
+  clusters: "Clusters",
+  comparar: "Comparar",
+};
 
 export function AnalisePage() {
   const [sub, setSub] = useState<Sub>("ranking");
@@ -11,7 +18,7 @@ export function AnalisePage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">Análise</h1>
       <div role="tablist" className="flex gap-2">
-        {(["ranking", "clusters"] as const).map((s) => (
+        {(["ranking", "clusters", "comparar"] as const).map((s) => (
           <button
             key={s}
             role="tab"
@@ -24,11 +31,13 @@ export function AnalisePage() {
                 : "bg-muted text-muted-foreground"
             )}
           >
-            {s === "ranking" ? "Ranking" : "Clusters"}
+            {ROTULOS[s]}
           </button>
         ))}
       </div>
-      {sub === "ranking" ? <RankingPage /> : <ClustersPage />}
+      {sub === "ranking" && <RankingPage />}
+      {sub === "clusters" && <ClustersPage />}
+      {sub === "comparar" && <ComparadorPage />}
     </div>
   );
 }
