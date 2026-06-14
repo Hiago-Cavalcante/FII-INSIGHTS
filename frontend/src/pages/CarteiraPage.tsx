@@ -3,13 +3,15 @@ import { cn } from "@/lib/utils";
 import { PosicoesView } from "@/components/carteira/PosicoesView";
 import { DividendosView } from "@/components/carteira/DividendosView";
 import { SimuladorView } from "@/components/carteira/SimuladorView";
+import { RecomendacoesView } from "@/components/carteira/RecomendacoesView";
 
-type Sub = "posicoes" | "dividendos" | "simulador";
+type Sub = "posicoes" | "dividendos" | "simulador" | "recomendacoes";
 
 const ROTULOS: Record<Sub, string> = {
   posicoes: "Posições",
   dividendos: "Dividendos",
   simulador: "Simulador",
+  recomendacoes: "Recomendações",
 };
 
 export function CarteiraPage() {
@@ -18,7 +20,7 @@ export function CarteiraPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">Minha Carteira</h1>
       <div role="tablist" className="flex gap-2">
-        {(["posicoes", "dividendos", "simulador"] as const).map((s) => (
+        {(["posicoes", "dividendos", "simulador", "recomendacoes"] as const).map((s) => (
           <button
             key={s}
             role="tab"
@@ -36,6 +38,7 @@ export function CarteiraPage() {
       {sub === "posicoes" && <PosicoesView />}
       {sub === "dividendos" && <DividendosView />}
       {sub === "simulador" && <SimuladorView />}
+      {sub === "recomendacoes" && <RecomendacoesView />}
     </div>
   );
 }
