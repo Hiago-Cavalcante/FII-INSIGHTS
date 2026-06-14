@@ -46,7 +46,10 @@ class GeminiClient:
                 r = client.post(url, params={"key": self._api_key}, json=body)
                 r.raise_for_status()
                 data = r.json()
-            return data["candidates"][0]["content"]["parts"][0]["text"]
+            texto = data["candidates"][0]["content"]["parts"][0]["text"]
+            if not isinstance(texto, str):
+                raise AssistenteIndisponivel("resposta do Gemini sem texto")
+            return texto
         except (httpx.HTTPError, KeyError, IndexError, ValueError, TypeError) as e:
             logger.warning("Falha no Gemini: %s", e)
             raise AssistenteIndisponivel(str(e)) from e
