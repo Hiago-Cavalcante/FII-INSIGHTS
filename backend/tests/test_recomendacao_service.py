@@ -12,7 +12,6 @@ from app.services.recomendacao_service import (
     sugerir_rebalanceamento,
 )
 
-
 # ── Bazin ─────────────────────────────────────────────────────────────
 
 
