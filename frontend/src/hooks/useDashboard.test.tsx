@@ -13,7 +13,7 @@ const mk = (
   score: number,
   cls: RankingItem["classificacao"],
 ): RankingItem => ({
-  ticker, nome: ticker, segmento: "Logística", score, classificacao: cls,
+  ticker, nome: ticker, segmento: "Logística", classe: "FII", score, classificacao: cls,
   dy_atual: 10, dy_12m: 10, p_vp: 0.9,
   vacancia_fisica: null, vacancia_financeira: null,
   liquidez_diaria: 10, volatilidade_12m: 9,
