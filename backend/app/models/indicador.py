@@ -28,5 +28,6 @@ class Indicador(Base):
     volatilidade_12m: Mapped[float | None] = mapped_column(Float)
     patrimonio_liquido: Mapped[float | None] = mapped_column(Float)
     num_cotistas: Mapped[int | None] = mapped_column(Integer)
+    preco_atual: Mapped[float | None] = mapped_column(Float)
 
     fundo: Mapped[Fundo] = relationship(back_populates="indicadores")
