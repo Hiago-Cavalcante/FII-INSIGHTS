@@ -11,6 +11,7 @@ from app.services.scoring_service import (
     calcular_pontuacoes,
     calcular_score_com_pesos,
     classificar_score,
+    resolver_perfil,
 )
 
 _MILHAO = 1_000_000  # liquidez_diaria: R$ -> R$ milhões
@@ -23,6 +24,7 @@ class RankingItem:
     ticker: str
     nome: str | None
     segmento: str | None
+    classe: str
     score: float
     classificacao: Classificacao
     # Indicadores em unidade de display:
@@ -72,13 +74,15 @@ def montar_ranking(db: Session, pesos: dict[str, float]) -> list[RankingItem]:
     itens: list[RankingItem] = []
     for ind in indicadores:
         fundo = ind.fundo
+        pesos_fundo, dimensoes = resolver_perfil(fundo.classe, pesos)
         pontuacoes = calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
-        score = calcular_score_com_pesos(pontuacoes, pesos)
+        score = calcular_score_com_pesos(pontuacoes, pesos_fundo, dimensoes)
         itens.append(
             RankingItem(
                 ticker=fundo.ticker,
                 nome=fundo.nome,
                 segmento=fundo.segmento,
+                classe=fundo.classe,
                 score=score,
                 classificacao=classificar_score(score),
                 **_converter_display(ind),

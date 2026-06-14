@@ -47,6 +47,16 @@ def test_buscar_pagina_html_retorna_texto():
     assert "<html>ok</html>" in html
 
 
+def test_buscar_pagina_html_fiagro_usa_url_dedicada():
+    # FIAGRO não está no screener de FII; a página individual fica em /fiagros/<ticker>.
+    with respx.mock:
+        respx.get(url__regex=r"statusinvest\.com\.br/fiagros/KNCA11").mock(
+            return_value=httpx.Response(200, text="<html>fiagro</html>")
+        )
+        html = StatusInvestClient().buscar_pagina_html("KNCA11", classe="FIAGRO")
+    assert "<html>fiagro</html>" in html
+
+
 def test_context_manager_fecha_cliente():
     client = httpx.Client()
     with StatusInvestClient(client=client):

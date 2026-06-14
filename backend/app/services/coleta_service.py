@@ -65,9 +65,10 @@ class ColetaService:
                     logger.warning("Volatilidade indisponível p/ %s: %s", fundo.ticker, e)
 
                 # Fallback pela página HTML só quando o screener não trouxe o ticker.
+                # FIAGRO não está no screener de FII: a página fica em /fiagros/<ticker>.
                 if screener_miss:
                     try:
-                        html = self._client.buscar_pagina_html(fundo.ticker)
+                        html = self._client.buscar_pagina_html(fundo.ticker, fundo.classe)
                         for chave, valor in self._parser.extrair_fundamentais(html).items():
                             campos.setdefault(chave, valor)
                     except Exception as e:

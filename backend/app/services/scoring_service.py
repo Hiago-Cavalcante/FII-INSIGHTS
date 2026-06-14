@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from datetime import datetime
 from typing import Literal
 
@@ -59,11 +60,31 @@ PESOS_POR_PERFIL: dict[str, dict[str, float]] = {
     },
 }
 
-DIMENSOES: dict[str, list[str]] = {
+DIMENSOES_FII: dict[str, list[str]] = {
     "Rentabilidade": ["dy_atual", "dy_12m"],
     "Valuation": ["p_vp"],
     "Risco": ["vacancia_fisica", "vacancia_financeira", "liquidez_diaria", "volatilidade_12m"],
     "Estrutura": ["patrimonio_liquido", "num_cotistas", "segmento"],
+}
+DIMENSOES = DIMENSOES_FII  # compat: chamadas que não passam `dimensoes`
+
+# Perfil FIAGRO (RF-14): FIAGRO de papel não tem vacância nem segmento de tijolo.
+# A dimensão Risco se apoia em liquidez + volatilidade; renda (DY) pesa mais.
+DIMENSOES_FIAGRO: dict[str, list[str]] = {
+    "Rentabilidade": ["dy_atual", "dy_12m"],
+    "Valuation": ["p_vp"],
+    "Risco": ["liquidez_diaria", "volatilidade_12m"],
+    "Estrutura": ["patrimonio_liquido", "num_cotistas"],
+}
+
+PESOS_FIAGRO: dict[str, float] = {
+    "dy_atual": 0.25,
+    "dy_12m": 0.15,
+    "p_vp": 0.15,
+    "liquidez_diaria": 0.15,
+    "volatilidade_12m": 0.15,
+    "patrimonio_liquido": 0.075,
+    "num_cotistas": 0.075,
 }
 
 
@@ -77,6 +98,31 @@ def pontuar_dy(valor: float) -> int:
     if valor <= 0.12:
         return 4
     return 2
+
+
+def pontuar_dy_fiagro(valor: float) -> int:
+    """Faixa de DY do perfil FIAGRO, calibrada contra os DYs reais coletados.
+
+    FIAGRO de papel (agro-CRA) é atrelado a CDI+/IPCA+: com Selic alta, o núcleo
+    saudável roda 12-16%; 16-20% é alto porém comum; acima de 20% acende cautela
+    (risco de crédito ou distribuição via retorno de capital).
+    """
+    if valor <= 0.09:
+        return 1
+    if valor <= 0.12:
+        return 3
+    if valor <= 0.16:
+        return 5
+    if valor <= 0.20:
+        return 4
+    return 2
+
+
+# Faixa de DY aplicada por classe de ativo (RF-14).
+FAIXA_DY: dict[str, Callable[[float], int]] = {
+    "FII": pontuar_dy,
+    "FIAGRO": pontuar_dy_fiagro,
+}
 
 
 def pontuar_pvp(valor: float) -> int:
@@ -178,8 +224,9 @@ def calcular_pontuacoes(
     todos_cotistas: list[float],
 ) -> dict[str, float | None]:
     p: dict[str, float | None] = {}
-    p["dy_atual"] = float(pontuar_dy(ind.dy_atual)) if ind.dy_atual is not None else None
-    p["dy_12m"] = float(pontuar_dy(ind.dy_12m)) if ind.dy_12m is not None else None
+    faixa_dy = FAIXA_DY.get(fundo.classe, pontuar_dy)
+    p["dy_atual"] = float(faixa_dy(ind.dy_atual)) if ind.dy_atual is not None else None
+    p["dy_12m"] = float(faixa_dy(ind.dy_12m)) if ind.dy_12m is not None else None
     p["p_vp"] = float(pontuar_pvp(ind.p_vp)) if ind.p_vp is not None else None
     p["vacancia_fisica"] = float(pontuar_vacancia(ind.vacancia_fisica)) if ind.vacancia_fisica is not None else None
     p["vacancia_financeira"] = (
@@ -199,14 +246,25 @@ def calcular_pontuacoes(
     return p
 
 
+def resolver_perfil(classe: str, pesos_fii: dict[str, float]) -> tuple[dict[str, float], dict[str, list[str]]]:
+    """Devolve o par (pesos, dimensoes) conforme a classe do fundo (RF-14).
+
+    FII usa os pesos recebidos (perfil de risco do usuário); FIAGRO usa o perfil base único.
+    """
+    if classe == "FIAGRO":
+        return PESOS_FIAGRO, DIMENSOES_FIAGRO
+    return pesos_fii, DIMENSOES_FII
+
+
 def calcular_score_com_pesos(
     pontuacoes: dict[str, float | None],
     pesos: dict[str, float],
+    dimensoes: dict[str, list[str]] = DIMENSOES_FII,
 ) -> float:
     """Score 0-100 com redistribuição proporcional dentro de cada dimensão."""
     pesos_efetivos: dict[str, float] = {}
 
-    for indicadores_dim in DIMENSOES.values():
+    for indicadores_dim in dimensoes.values():
         presentes = [k for k in indicadores_dim if pontuacoes.get(k) is not None]
         if not presentes:
             continue
@@ -254,14 +312,16 @@ class ScoringService:
                 sem_dados += 1
                 continue
             try:
+                pesos, dimensoes = resolver_perfil(fundo.classe, self._pesos)
                 pontuacoes = calcular_pontuacoes(ind, fundo, todos_pl, todos_cotistas)
-                score = calcular_score_com_pesos(pontuacoes, self._pesos)
+                score = calcular_score_com_pesos(pontuacoes, pesos, dimensoes)
                 classificacao = classificar_score(score)
                 sh = ScoringHistorico(
                     fundo_id=fundo.id,
                     data_execucao=agora,
                     score=score,
                     classificacao=classificacao,
+                    classe_aplicada=fundo.classe,
                 )
                 self._db.add(sh)
                 calculados += 1

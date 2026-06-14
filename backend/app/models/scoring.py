@@ -20,5 +20,6 @@ class ScoringHistorico(Base):
     data_execucao: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     score: Mapped[float] = mapped_column(Float, nullable=False)
     classificacao: Mapped[str] = mapped_column(String(20), nullable=False)
+    classe_aplicada: Mapped[str] = mapped_column(String(6), nullable=False, server_default="FII", default="FII")
 
     fundo: Mapped[Fundo] = relationship(back_populates="scorings")

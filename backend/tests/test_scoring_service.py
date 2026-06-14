@@ -1,21 +1,28 @@
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 
 from app.models.fundo import Fundo
 from app.models.indicador import Indicador
 from app.services.scoring_service import (
+    DIMENSOES_FIAGRO,
+    DIMENSOES_FII,
     PESOS_DEFAULT,
+    PESOS_FIAGRO,
     ScoringService,
+    calcular_pontuacoes,
     calcular_score_com_pesos,
     classificar_score,
     pontuar_dy,
+    pontuar_dy_fiagro,
     pontuar_liquidez,
     pontuar_percentil,
     pontuar_pvp,
     pontuar_segmento,
     pontuar_vacancia,
     pontuar_volatilidade,
+    resolver_perfil,
 )
 
 
@@ -266,3 +273,145 @@ def test_score_conservador_com_estrutura_so_segmento_nao_quebra():
     score = calcular_score_com_pesos(pontuacoes, PESOS_POR_PERFIL["conservador"])
     assert isinstance(score, float)
     assert 0.0 <= score <= 100.0
+
+
+# ── RF-14: scoring por classe (FII × FIAGRO) ──────────────────────────
+
+
+def test_pontuar_dy_fiagro_faixas():
+    # Calibrada contra os DYs reais coletados (agro-CRA roda 14-20% com Selic alta).
+    assert pontuar_dy_fiagro(0.08) == 1  # <=9% (atipicamente baixo p/ FIAGRO)
+    assert pontuar_dy_fiagro(0.09) == 1
+    assert pontuar_dy_fiagro(0.11) == 3  # 9-12% (modesto)
+    assert pontuar_dy_fiagro(0.12) == 3
+    assert pontuar_dy_fiagro(0.14) == 5  # 12-16% (núcleo saudável)
+    assert pontuar_dy_fiagro(0.16) == 5
+    assert pontuar_dy_fiagro(0.18) == 4  # 16-20% (alto, comum)
+    assert pontuar_dy_fiagro(0.20) == 4
+    assert pontuar_dy_fiagro(0.22) == 2  # >20% (cautela: risco de crédito/retorno de capital)
+
+
+def test_pesos_fiagro_somam_um():
+    assert abs(sum(PESOS_FIAGRO.values()) - 1.0) < 1e-9
+
+
+def test_dimensoes_fiagro_sem_vacancia_nem_segmento():
+    todos = [i for ind in DIMENSOES_FIAGRO.values() for i in ind]
+    assert "vacancia_fisica" not in todos
+    assert "vacancia_financeira" not in todos
+    assert "segmento" not in todos
+
+
+def test_score_fiagro_ignora_vacancia_e_segmento():
+    # Pontuações máximas só nos indicadores FIAGRO -> score 100;
+    # vacância/segmento presentes não devem alterar nada.
+    pont = {
+        "dy_atual": 5.0,
+        "dy_12m": 5.0,
+        "p_vp": 5.0,
+        "liquidez_diaria": 5.0,
+        "volatilidade_12m": 5.0,
+        "patrimonio_liquido": 5.0,
+        "num_cotistas": 5.0,
+        "vacancia_fisica": 1.0,
+        "vacancia_financeira": 1.0,
+        "segmento": 1.0,
+    }
+    assert calcular_score_com_pesos(pont, PESOS_FIAGRO, DIMENSOES_FIAGRO) == 100.0
+
+
+def test_resolver_perfil_fiagro():
+    pesos, dims = resolver_perfil("FIAGRO", PESOS_DEFAULT)
+    assert pesos is PESOS_FIAGRO
+    assert dims is DIMENSOES_FIAGRO
+
+
+def test_resolver_perfil_fii_usa_pesos_recebidos():
+    pesos, dims = resolver_perfil("FII", PESOS_DEFAULT)
+    assert pesos is PESOS_DEFAULT
+    assert dims is DIMENSOES_FII
+
+
+def _ns_indicador(**kw: float | None) -> SimpleNamespace:
+    base: dict[str, float | None] = dict(
+        dy_atual=None,
+        dy_12m=None,
+        p_vp=None,
+        vacancia_fisica=None,
+        vacancia_financeira=None,
+        liquidez_diaria=None,
+        volatilidade_12m=None,
+        patrimonio_liquido=None,
+        num_cotistas=None,
+    )
+    base.update(kw)
+    return SimpleNamespace(**base)
+
+
+def test_dy_pontua_por_classe():
+    # DY 13% -> FII pune (curva satura em 8-10% e cai depois), FIAGRO premia (5).
+    ind = _ns_indicador(dy_atual=0.13)
+    fundo_fii = SimpleNamespace(classe="FII", segmento=None)
+    fundo_fiagro = SimpleNamespace(classe="FIAGRO", segmento=None)
+    p_fii = calcular_pontuacoes(ind, fundo_fii, [], [])
+    p_fiagro = calcular_pontuacoes(ind, fundo_fiagro, [], [])
+    assert p_fii["dy_atual"] == 2.0  # >12% na curva FII
+    assert p_fiagro["dy_atual"] == 5.0  # 12-16% na curva FIAGRO
+
+
+def test_executar_grava_classe_aplicada(db_session):
+    from app.models.scoring import ScoringHistorico
+
+    fii = Fundo(ticker="HGLG11", classe="FII", segmento="Logística")
+    fiagro = Fundo(ticker="RZTR11", classe="FIAGRO", segmento="Agro - Terras")
+    db_session.add_all([fii, fiagro])
+    db_session.flush()
+    db_session.add_all(
+        [
+            Indicador(
+                fundo_id=fii.id,
+                data_referencia=date(2026, 6, 1),
+                dy_atual=0.09,
+                p_vp=0.95,
+                liquidez_diaria=2_000_000.0,
+                volatilidade_12m=0.10,
+            ),
+            Indicador(
+                fundo_id=fiagro.id,
+                data_referencia=date(2026, 6, 1),
+                dy_atual=0.13,
+                p_vp=0.98,
+                liquidez_diaria=1_000_000.0,
+                volatilidade_12m=0.08,
+            ),
+        ]
+    )
+    db_session.commit()
+
+    ScoringService(db_session).executar()
+    classes = {s.fundo.ticker: s.classe_aplicada for s in db_session.query(ScoringHistorico).all()}
+    assert classes["HGLG11"] == "FII"
+    assert classes["RZTR11"] == "FIAGRO"
+
+
+def test_score_discriminante_fiagro_vs_fii():
+    # Fundo de DY alto (14%) com demais indicadores medianos, para isolar o efeito do DY:
+    # sob FIAGRO o DY pontua 5 (núcleo saudável 12-16%); sob FII pontua 2 (>12% penalizado).
+    # O contraste tem de cruzar faixa de classificação, não só diferir por pouco.
+    ind = _ns_indicador(
+        dy_atual=0.14,
+        dy_12m=0.14,
+        p_vp=1.0,
+        liquidez_diaria=600_000,
+        volatilidade_12m=0.18,
+    )
+    fundo_fiagro = SimpleNamespace(classe="FIAGRO", segmento=None)
+    fundo_fii = SimpleNamespace(classe="FII", segmento=None)
+    pont_fiagro = calcular_pontuacoes(ind, fundo_fiagro, [], [])
+    pont_fii = calcular_pontuacoes(ind, fundo_fii, [], [])
+    pesos_f, dims_f = resolver_perfil("FIAGRO", PESOS_DEFAULT)
+    score_fiagro = calcular_score_com_pesos(pont_fiagro, pesos_f, dims_f)
+    score_fii = calcular_score_com_pesos(pont_fii, PESOS_DEFAULT, DIMENSOES_FII)
+    assert score_fiagro - score_fii > 15  # diferença material, não marginal
+    assert classificar_score(score_fiagro) == "Bom"
+    assert classificar_score(score_fii) == "Regular"
