@@ -9,7 +9,7 @@ import type { RankingItem } from "@/types/ranking";
 vi.mock("@/api/endpoints/ranking");
 
 const ITEM: RankingItem = {
-  ticker: "AAAA11", nome: "Fundo A", segmento: "Logística",
+  ticker: "AAAA11", nome: "Fundo A", segmento: "Logística", classe: "FII",
   score: 82.5, classificacao: "Excelente",
   dy_atual: 10, dy_12m: 10, p_vp: 0.92,
   vacancia_fisica: null, vacancia_financeira: null,
