@@ -359,6 +359,25 @@ def test_dy_pontua_por_classe():
     assert p_fiagro["dy_atual"] == 5.0  # 12-16% na curva FIAGRO
 
 
+def test_detalhar_score_contribuicoes_somam_score():
+    from app.services.scoring_service import detalhar_score
+
+    p = {k: 4.0 for k in PESOS_DEFAULT}  # todos presentes, pontuação 4
+    det = detalhar_score(p, PESOS_DEFAULT, DIMENSOES_FII)
+    assert {d["indicador"] for d in det} == set(PESOS_DEFAULT)
+    soma = sum(d["contribuicao"] for d in det)
+    assert abs(soma - calcular_score_com_pesos(p, PESOS_DEFAULT)) < 0.1
+
+
+def test_detalhar_score_ignora_ausentes():
+    from app.services.scoring_service import detalhar_score
+
+    p: dict[str, float | None] = {k: None for k in PESOS_DEFAULT}
+    p["dy_atual"] = 5.0
+    det = detalhar_score(p, PESOS_DEFAULT, DIMENSOES_FII)
+    assert [d["indicador"] for d in det] == ["dy_atual"]
+
+
 def test_executar_grava_classe_aplicada(db_session):
     from app.models.scoring import ScoringHistorico
 

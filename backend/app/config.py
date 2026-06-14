@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     auth_secret: str = "dev-insecure-secret-troque-em-producao-0123456789"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 10080  # 7 dias
+    gemini_api_key: str = ""  # Assistente IA (RF-38); vazio => assistente indisponível (503)
+    gemini_model: str = "gemini-2.0-flash"
 
     model_config = SettingsConfigDict(
         env_file=".env",

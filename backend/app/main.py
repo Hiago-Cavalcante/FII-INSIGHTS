@@ -6,7 +6,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import auth, carteira, clustering, dashboard, fundos, perfil, ranking, scoring
+from app.routers import (
+    assistente,
+    auth,
+    carteira,
+    clustering,
+    dashboard,
+    fundos,
+    perfil,
+    ranking,
+    scoring,
+)
 
 logging.basicConfig(level=getattr(logging, settings.log_level))
 
@@ -28,6 +38,7 @@ app.include_router(perfil.router, prefix="/api/v1")
 app.include_router(scoring.router, prefix="/api/v1")
 app.include_router(clustering.router, prefix="/api/v1")
 app.include_router(carteira.router, prefix="/api/v1")
+app.include_router(assistente.router, prefix="/api/v1")
 
 
 @app.get("/health")
