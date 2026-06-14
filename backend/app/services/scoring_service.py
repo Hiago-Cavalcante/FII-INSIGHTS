@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from datetime import datetime
-from typing import Literal
+from typing import Literal, TypedDict
 
 from sqlalchemy.orm import Session
 
@@ -286,6 +286,56 @@ def calcular_score_com_pesos(
         assert pts is not None  # garantido pela construção de pesos_efetivos
         total += (pesos_efetivos[k] / peso_total) * (pts / 5.0) * 100
     return round(total, 2)
+
+
+class ContribIndicador(TypedDict):
+    indicador: str
+    pontuacao: float
+    peso_efetivo: float
+    contribuicao: float
+
+
+def detalhar_score(
+    pontuacoes: dict[str, float | None],
+    pesos: dict[str, float],
+    dimensoes: dict[str, list[str]] = DIMENSOES_FII,
+) -> list[ContribIndicador]:
+    """Decompõe o score por indicador presente (peso efetivo normalizado + contribuição).
+
+    Usa a mesma redistribuição de calcular_score_com_pesos, então a soma das
+    contribuições é igual ao score. Base factual para o assistente (RF-38) e a
+    ficha de análise (RF-18).
+    """
+    pesos_efetivos: dict[str, float] = {}
+    for indicadores_dim in dimensoes.values():
+        presentes = [k for k in indicadores_dim if pontuacoes.get(k) is not None]
+        if not presentes:
+            continue
+        peso_dim = sum(pesos[k] for k in indicadores_dim)
+        peso_presente = sum(pesos[k] for k in presentes)
+        if peso_presente == 0:
+            continue
+        for k in presentes:
+            pesos_efetivos[k] = pesos[k] * (peso_dim / peso_presente)
+
+    if not pesos_efetivos:
+        return []
+
+    peso_total = sum(pesos_efetivos.values())
+    detalhes: list[ContribIndicador] = []
+    for k, pe in pesos_efetivos.items():
+        pts = pontuacoes[k]
+        assert pts is not None
+        peso_norm = pe / peso_total
+        detalhes.append(
+            {
+                "indicador": k,
+                "pontuacao": pts,
+                "peso_efetivo": round(peso_norm, 4),
+                "contribuicao": round(peso_norm * (pts / 5.0) * 100, 2),
+            }
+        )
+    return detalhes
 
 
 class ScoringService:
