@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 10080  # 7 dias
     gemini_api_key: str = ""  # Assistente IA (RF-38); vazio => assistente indisponível (503)
-    gemini_model: str = "gemini-2.0-flash"
+    # gemini-2.5-flash: modelo do free tier que de fato responde nesta conta
+    # (o 2.0-flash retorna 429 com limit:0 no free tier desta chave).
+    gemini_model: str = "gemini-2.5-flash"
 
     model_config = SettingsConfigDict(
         env_file=".env",
