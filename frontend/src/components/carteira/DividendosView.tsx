@@ -11,6 +11,7 @@ export function DividendosView() {
   if (!dividendos) return null;
 
   const yoc = dividendos.yield_on_cost;
+  const semFundos = dividendos.por_fundo.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -26,6 +27,14 @@ export function DividendosView() {
         </p>
       </section>
 
+      {semFundos && (
+        <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+          Cadastre posições na carteira para ver a composição da sua renda.
+        </p>
+      )}
+
+      {!semFundos && (
+      <>
       <section>
         <h2 className="mb-2 text-sm font-semibold text-foreground">Composição da renda</h2>
         <div className="rounded-2xl border border-border bg-card p-3">
@@ -50,6 +59,8 @@ export function DividendosView() {
           ))}
         </ul>
       </section>
+      </>
+      )}
     </div>
   );
 }

@@ -40,7 +40,7 @@ function PercentInput({
             const v = parseFloat(e.target.value);
             if (!Number.isNaN(v)) onChange(v / 100);
           }}
-          className="w-16 rounded-lg border border-border bg-card px-2 py-1 text-right text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
+          className="w-20 rounded-lg border border-border bg-card px-2 py-1.5 text-right text-base text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-ring"
         />
         <span className="text-muted-foreground">%</span>
       </span>
@@ -162,7 +162,7 @@ export function RecomendacoesView() {
       {/* Preço-teto */}
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-foreground">Preço-teto (método Bazin)</h2>
-        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-3">
+        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3">
           <PercentInput label="Yield-alvo FII" fracao={yieldFii} onChange={setYieldFii} />
           <PercentInput label="Yield-alvo FIAGRO" fracao={yieldFiagro} onChange={setYieldFiagro} />
         </div>
