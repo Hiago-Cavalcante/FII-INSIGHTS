@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment, type ReactNode } from "react";
 import {
   createColumnHelper,
   getCoreRowModel,
   getSortedRowModel,
   getPaginationRowModel,
+  getExpandedRowModel,
   useReactTable,
   flexRender,
   type SortingState,
@@ -59,6 +60,23 @@ function fmt(v: number | null, suffix = "", decimals = 1): string {
   return v !== null ? `${v.toFixed(decimals)}${suffix}` : "—";
 }
 
+/**
+ * Métricas exibidas no painel de detalhe (mobile): as colunas que ficam
+ * escondidas no celular + indicadores extras que nem aparecem na tabela.
+ */
+function detalhesMobile(f: RankingItem): Array<{ label: string; value: ReactNode }> {
+  return [
+    { label: "Classe", value: <ClasseBadge classe={f.classe} /> },
+    { label: "Segmento", value: f.segmento ?? "—" },
+    { label: "DY atual", value: fmt(f.dy_atual, "%") },
+    { label: "DY 12m", value: fmt(f.dy_12m, "%") },
+    { label: "P/VP", value: fmt(f.p_vp, "", 2) },
+    { label: "Vacância", value: fmt(f.vacancia_fisica, "%") },
+    { label: "Volatilidade", value: fmt(f.volatilidade_12m, "%") },
+    { label: "Liquidez (R$ mi)", value: fmt(f.liquidez_diaria, "", 1) },
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // Column helper
 // ---------------------------------------------------------------------------
@@ -84,6 +102,31 @@ function SortIcon({ direction }: { direction: "asc" | "desc" | false }) {
 // ---------------------------------------------------------------------------
 
 const columns = [
+  // Expander — só no mobile. Abre o painel de detalhe com as métricas que
+  // ficam escondidas no celular (DY 12m, Liquidez, etc.).
+  columnHelper.display({
+    id: "expander",
+    header: () => null,
+    cell: ({ row }) => (
+      <button
+        type="button"
+        aria-label={`Detalhes de ${row.original.ticker}`}
+        aria-expanded={row.getIsExpanded()}
+        onClick={row.getToggleExpandedHandler()}
+        className="flex items-center justify-center rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800"
+      >
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 transition-transform",
+            row.getIsExpanded() && "rotate-180"
+          )}
+        />
+      </button>
+    ),
+    enableSorting: false,
+    meta: { mobileOnly: true },
+  }),
+
   // Coluna de posição (display column)
   columnHelper.display({
     id: "posicao",
@@ -119,6 +162,7 @@ const columns = [
   columnHelper.accessor("classe", {
     header: "Classe",
     cell: ({ getValue }) => <ClasseBadge classe={getValue()} />,
+    meta: { hidden: "md" },
   }),
 
   // Segmento
@@ -129,6 +173,7 @@ const columns = [
         {getValue() ?? "—"}
       </span>
     ),
+    meta: { hidden: "lg" },
   }),
 
   // Score
@@ -158,7 +203,7 @@ const columns = [
         {fmt(getValue(), "%")}
       </span>
     ),
-    meta: { align: "right" },
+    meta: { align: "right", hidden: "md" },
   }),
 
   // P/VP
@@ -169,7 +214,7 @@ const columns = [
         {fmt(getValue(), "", 2)}
       </span>
     ),
-    meta: { align: "right" },
+    meta: { align: "right", hidden: "md" },
   }),
 
   // Vacância Física (hidden < lg)
@@ -234,6 +279,8 @@ export function RankingPage() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getRowCanExpand: () => true,
   });
 
   // Informações de paginação para exibição
@@ -318,6 +365,7 @@ export function RankingPage() {
                   const meta = header.column.columnDef.meta;
                   const align = meta?.align;
                   const hidden = meta?.hidden;
+                  const mobileOnly = meta?.mobileOnly;
 
                   return (
                     <TableHead
@@ -325,8 +373,10 @@ export function RankingPage() {
                       className={cn(
                         "text-xs font-medium text-gray-500 dark:text-gray-400 select-none",
                         align === "right" && "text-right",
+                        hidden === "md" && "hidden md:table-cell",
                         hidden === "lg" && "hidden lg:table-cell",
                         hidden === "xl" && "hidden xl:table-cell",
+                        mobileOnly && "md:hidden",
                         header.column.getCanSort() &&
                           "cursor-pointer hover:text-gray-900 dark:hover:text-gray-100"
                       )}
@@ -360,32 +410,58 @@ export function RankingPage() {
             ) : (
               table.getRowModel().rows.map((row) => {
                 return (
-                  <TableRow
-                    key={row.id}
-                    className="border-gray-100 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta;
-                      const align = meta?.align;
-                      const hidden = meta?.hidden;
+                  <Fragment key={row.id}>
+                    <TableRow className="border-gray-100 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                      {row.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta;
+                        const align = meta?.align;
+                        const hidden = meta?.hidden;
+                        const mobileOnly = meta?.mobileOnly;
 
-                      return (
-                        <TableCell
-                          key={cell.id}
-                          className={cn(
-                            align === "right" && "text-right",
-                            hidden === "lg" && "hidden lg:table-cell",
-                            hidden === "xl" && "hidden xl:table-cell"
-                          )}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            className={cn(
+                              align === "right" && "text-right",
+                              hidden === "md" && "hidden md:table-cell",
+                              hidden === "lg" && "hidden lg:table-cell",
+                              hidden === "xl" && "hidden xl:table-cell",
+                              mobileOnly && "md:hidden"
+                            )}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+
+                    {/* Painel de detalhe — só no mobile (no desktop as colunas já aparecem) */}
+                    {row.getIsExpanded() && (
+                      <TableRow className="border-gray-100 dark:border-gray-800/60 hover:bg-transparent md:hidden">
+                        <TableCell colSpan={row.getVisibleCells().length} className="bg-muted/30 p-0">
+                          <dl
+                            data-testid={`detalhe-${row.original.ticker}`}
+                            className="grid grid-cols-2 gap-x-6 gap-y-2.5 px-4 py-3"
+                          >
+                            {detalhesMobile(row.original).map(({ label, value }) => (
+                              <div
+                                key={label}
+                                className="flex items-center justify-between gap-2 text-sm"
+                              >
+                                <dt className="text-muted-foreground">{label}</dt>
+                                <dd className="font-medium tabular-nums text-foreground">
+                                  {value}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
                         </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                      </TableRow>
+                    )}
+                  </Fragment>
                 );
               })
             )}
