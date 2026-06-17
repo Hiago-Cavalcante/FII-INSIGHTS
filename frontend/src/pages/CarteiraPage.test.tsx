@@ -10,6 +10,8 @@ vi.mock("@/hooks/useCarteira", () => ({
     isError: false,
     aporte: { mutate: vi.fn(), isPending: false },
     remover: { mutate: vi.fn() },
+    carregarExemplo: { mutate: vi.fn(), isPending: false },
+    limpar: { mutate: vi.fn(), isPending: false },
   }),
 }));
 vi.mock("@/hooks/useDividendos", () => ({
@@ -33,7 +35,7 @@ vi.mock("@/components/carteira/SimuladorView", () => ({
 describe("CarteiraPage abas", () => {
   it("troca para a aba Dividendos e mostra a renda mensal", () => {
     render(<CarteiraPage />);
-    expect(screen.getByText("Registrar aporte")).toBeInTheDocument();
+    expect(screen.getByText("Carregar carteira de exemplo")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Dividendos" }));
     expect(screen.getByText(/Renda mensal estimada/)).toBeInTheDocument();
   });

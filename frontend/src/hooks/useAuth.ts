@@ -16,8 +16,8 @@ export function useAuth() {
       const { access_token } = await authApi.login(email, senha);
       await autenticar(access_token);
     },
-    async register(email: string, senha: string) {
-      const { access_token } = await authApi.register(email, senha);
+    async register(nome: string, email: string, senha: string) {
+      const { access_token } = await authApi.register(nome, email, senha);
       await autenticar(access_token);
     },
     logout,

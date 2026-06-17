@@ -18,6 +18,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class RegistroIn(BaseModel):
+    nome: str | None = Field(default=None, max_length=120)
     email: EmailStr
     senha: str = Field(min_length=8, max_length=72)
 
@@ -35,6 +36,7 @@ class TokenOut(BaseModel):
 class UsuarioOut(BaseModel):
     id: int
     email: str
+    nome: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -45,7 +47,8 @@ def register(body: RegistroIn, db: Session = Depends(get_db)) -> TokenOut:
     repo = UsuarioRepository(db)
     if repo.buscar_por_email(body.email) is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="E-mail já cadastrado")
-    usuario = repo.criar(email=body.email, senha_hash=hash_senha(body.senha))
+    nome = body.nome.strip() if body.nome and body.nome.strip() else None
+    usuario = repo.criar(email=body.email, senha_hash=hash_senha(body.senha), nome=nome)
     return TokenOut(access_token=criar_access_token(str(usuario.id)))
 
 

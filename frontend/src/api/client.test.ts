@@ -6,7 +6,7 @@ beforeEach(() => useAuthStore.getState().logout());
 
 describe("apiClient interceptor", () => {
   it("injeta Authorization quando há token", async () => {
-    useAuthStore.getState().setAuth("tok123", { id: 1, email: "a@b.com" });
+    useAuthStore.getState().setAuth("tok123", { id: 1, email: "a@b.com", nome: null });
     const cfg = await apiClient.interceptors.request.handlers[0].fulfilled({
       headers: {},
     } as never);

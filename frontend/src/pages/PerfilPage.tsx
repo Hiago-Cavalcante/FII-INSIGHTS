@@ -6,9 +6,10 @@ import { usePerfilStore } from "@/stores/perfilStore";
 import type { TipoPerfil, Classificacao } from "@/types/domain";
 import type { PesosIndicadores } from "@/types/domain";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, LogOut } from "lucide-react";
 import { pesosSchema, type PesosForm } from "@/lib/pesosSchema";
 import { simularRanking } from "@/api/endpoints/ranking";
+import { useAuth } from "@/hooks/useAuth";
 
 // PesosForm traz percentuais inteiros (somam 100); converte para frações (somam 1.0).
 function toPesosIndicadores(p: PesosForm): PesosIndicadores {
@@ -295,6 +296,7 @@ const FAIXAS: Array<{ faixa: string; label: string; cor: string }> = [
 
 export function PerfilPage() {
   const { tipo, setTipo } = usePerfilStore();
+  const { logout } = useAuth();
   const [secao, setSecao] = useState<"pesos" | "custom" | "sobre" | null>(null);
   const ativo = PERFIS.find((p) => p.tipo === tipo) ?? PERFIS[1];
 
@@ -394,6 +396,16 @@ export function PerfilPage() {
           ))}
         </div>
       </Secao>
+
+      {/* Sair */}
+      <button
+        type="button"
+        onClick={logout}
+        className="mt-2 flex items-center justify-center gap-2 rounded-2xl border border-destructive/40 py-3 text-sm font-semibold text-destructive"
+      >
+        <LogOut className="h-4 w-4" />
+        Sair da conta
+      </button>
     </div>
   );
 }

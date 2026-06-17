@@ -39,6 +39,18 @@ def test_me_com_token(client_db):
     assert r.json()["email"] == "a@b.com"
 
 
+def test_register_com_nome_aparece_no_me(client_db):
+    reg = client_db.post(
+        "/api/v1/auth/register",
+        json={"nome": "Hiago", "email": "h@b.com", "senha": "segredo123"},
+    )
+    assert reg.status_code == 201
+    token = reg.json()["access_token"]
+    r = client_db.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200
+    assert r.json()["nome"] == "Hiago"
+
+
 def test_me_sem_token_401(client_db):
     r = client_db.get("/api/v1/auth/me")
     assert r.status_code == 401

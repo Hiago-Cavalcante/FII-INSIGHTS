@@ -10,14 +10,14 @@ describe("authStore", () => {
   });
 
   it("setAuth guarda token e usuário", () => {
-    useAuthStore.getState().setAuth("tok123", { id: 1, email: "a@b.com" });
+    useAuthStore.getState().setAuth("tok123", { id: 1, email: "a@b.com", nome: null });
     expect(useAuthStore.getState().token).toBe("tok123");
     expect(useAuthStore.getState().isAuthenticated()).toBe(true);
     expect(useAuthStore.getState().user?.email).toBe("a@b.com");
   });
 
   it("logout limpa o estado", () => {
-    useAuthStore.getState().setAuth("tok123", { id: 1, email: "a@b.com" });
+    useAuthStore.getState().setAuth("tok123", { id: 1, email: "a@b.com", nome: null });
     useAuthStore.getState().logout();
     expect(useAuthStore.getState().token).toBeNull();
   });

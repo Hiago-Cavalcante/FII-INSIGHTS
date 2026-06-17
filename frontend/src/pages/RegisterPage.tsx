@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -17,8 +18,8 @@ export function RegisterPage() {
       return;
     }
     try {
-      await register(email, senha);
-      navigate("/");
+      await register(nome.trim(), email, senha);
+      navigate("/onboarding");
     } catch {
       setErro("Não foi possível cadastrar (e-mail já em uso?).");
     }
@@ -34,6 +35,17 @@ export function RegisterPage() {
         <p className="text-sm text-muted-foreground">FII Insights</p>
       </div>
       <form onSubmit={onSubmit} className="glass flex flex-col gap-3 rounded-2xl p-5">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
+          Nome
+          <input
+            type="text"
+            required
+            autoComplete="name"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            className="rounded-xl border border-input bg-card px-3 py-2.5 text-foreground"
+          />
+        </label>
         <label className="flex flex-col gap-1 text-sm text-foreground">
           E-mail
           <input

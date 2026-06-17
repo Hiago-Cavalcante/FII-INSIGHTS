@@ -6,8 +6,16 @@ interface TokenResponse {
   token_type: string;
 }
 
-export async function register(email: string, senha: string): Promise<TokenResponse> {
-  const { data } = await apiClient.post<TokenResponse>("/api/v1/auth/register", { email, senha });
+export async function register(
+  nome: string,
+  email: string,
+  senha: string
+): Promise<TokenResponse> {
+  const { data } = await apiClient.post<TokenResponse>("/api/v1/auth/register", {
+    nome,
+    email,
+    senha,
+  });
   return data;
 }
 
