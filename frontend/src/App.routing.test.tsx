@@ -29,7 +29,7 @@ describe("auth-everywhere", () => {
     expect(screen.getByText("LOGIN")).toBeInTheDocument();
   });
   it("rota raiz com token mostra Início", () => {
-    useAuthStore.getState().setAuth("t", { id: 1, email: "a@b.com" });
+    useAuthStore.getState().setAuth("t", { id: 1, email: "a@b.com", nome: null });
     renderEm("/");
     expect(screen.getByText("INICIO")).toBeInTheDocument();
   });

@@ -26,7 +26,7 @@ describe("ProtectedRoute", () => {
   });
 
   it("renderiza o conteúdo com token", () => {
-    useAuthStore.getState().setAuth("tok", { id: 1, email: "a@b.com" });
+    useAuthStore.getState().setAuth("tok", { id: 1, email: "a@b.com", nome: null });
     renderEm("/carteira");
     expect(screen.getByText("Carteira privada")).toBeInTheDocument();
   });

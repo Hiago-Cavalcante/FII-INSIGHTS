@@ -21,7 +21,7 @@ beforeEach(() => {
 describe("useAuth", () => {
   it("login guarda token e usuário no store", async () => {
     vi.mocked(authApi.login).mockResolvedValue({ access_token: "tok", token_type: "bearer" });
-    vi.mocked(authApi.me).mockResolvedValue({ id: 1, email: "a@b.com" });
+    vi.mocked(authApi.me).mockResolvedValue({ id: 1, email: "a@b.com", nome: null });
     const { result } = renderHook(() => useAuth(), { wrapper });
     await act(async () => {
       await result.current.login("a@b.com", "segredo123");

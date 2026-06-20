@@ -7,7 +7,9 @@ import respx
 
 from app.utils.status_invest_client import StatusInvestClient
 
-_SCREENER_REAL = json.loads((Path(__file__).parent / "fixtures" / "si_screener_real.json").read_text())
+_SCREENER_REAL = json.loads(
+    (Path(__file__).parent / "fixtures" / "si_screener_real.json").read_text(encoding="utf-8")
+)
 # Regex disjuntos: 'advancedsearchresult\?' casa só o não-paginado (query logo após
 # 'result'); 'advancedsearchresultpaginated' casa só o paginado.
 _RE_SCREENER = r"advancedsearchresult\?"

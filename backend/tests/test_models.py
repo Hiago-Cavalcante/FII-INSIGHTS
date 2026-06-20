@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from datetime import date as date_type
 from datetime import datetime as dt
@@ -12,6 +13,7 @@ from app.models.indicador import Indicador
 from app.models.perfil import PerfilInvestidor
 from app.models.provento import Provento
 from app.models.scoring import ScoringHistorico
+from app.models.usuario import Usuario
 
 
 def test_criar_fundo_minimo(db_session):
@@ -140,21 +142,32 @@ def test_criar_cluster_e_associar_fundo(db_session):
     assert fc.cluster_id == cluster.id
 
 
+def _criar_usuario(db_session) -> Usuario:
+    u = Usuario(email=f"perfil-{uuid.uuid4()}@b.com", senha_hash="h")
+    db_session.add(u)
+    db_session.commit()
+    db_session.refresh(u)
+    return u
+
+
 def test_criar_perfil_investidor(db_session):
-    perfil = PerfilInvestidor(tipo="moderado")
+    usuario = _criar_usuario(db_session)
+    perfil = PerfilInvestidor(usuario_id=usuario.id, tipo="moderado")
     db_session.add(perfil)
     db_session.commit()
     db_session.refresh(perfil)
 
     assert perfil.id is not None
     assert len(perfil.id) == 36  # UUID string
+    assert perfil.usuario_id == usuario.id
     assert perfil.tipo == "moderado"
     assert perfil.pesos_personalizados is None
 
 
 def test_perfil_com_pesos_customizados(db_session):
+    usuario = _criar_usuario(db_session)
     pesos = {"dy_atual": 0.25, "p_vp": 0.20, "vacancia_fisica": 0.10}
-    perfil = PerfilInvestidor(tipo="arrojado", pesos_personalizados=pesos)
+    perfil = PerfilInvestidor(usuario_id=usuario.id, tipo="arrojado", pesos_personalizados=pesos)
     db_session.add(perfil)
     db_session.commit()
     db_session.refresh(perfil)

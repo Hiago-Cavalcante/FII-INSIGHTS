@@ -1,7 +1,8 @@
 import pytest
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from app.config import Settings
+from app.config import _DEV_AUTH_SECRET, Settings
 
 
 class SettingsNoEnvFile(BaseSettings):
@@ -32,3 +33,29 @@ def test_settings_brapi_token_default_vazio(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.delenv("LOG_LEVEL", raising=False)
     s = SettingsNoEnvFile()
     assert s.brapi_token == ""
+
+
+def test_desenvolvimento_e_o_environment_default() -> None:
+    s = Settings()
+    assert s.environment == "development"
+
+
+def test_producao_exige_auth_secret_definido() -> None:
+    with pytest.raises(ValidationError):
+        Settings(environment="production", auth_secret="")
+
+
+def test_producao_rejeita_auth_secret_default_inseguro() -> None:
+    with pytest.raises(ValidationError):
+        Settings(environment="production", auth_secret=_DEV_AUTH_SECRET)
+
+
+def test_producao_com_auth_secret_forte_sobe() -> None:
+    s = Settings(environment="production", auth_secret="x" * 64)
+    assert s.environment == "production"
+    assert s.auth_secret == "x" * 64
+
+
+def test_desenvolvimento_aceita_default_inseguro() -> None:
+    s = Settings(environment="development")
+    assert s.auth_secret == _DEV_AUTH_SECRET

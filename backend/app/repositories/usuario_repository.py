@@ -8,9 +8,9 @@ class UsuarioRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def criar(self, email: str, senha_hash: str) -> Usuario:
+    def criar(self, email: str, senha_hash: str, nome: str | None = None) -> Usuario:
         """Persiste um novo usuário e retorna a instância atualizada."""
-        usuario = Usuario(email=email, senha_hash=senha_hash)
+        usuario = Usuario(email=email, senha_hash=senha_hash, nome=nome)
         self.db.add(usuario)
         self.db.commit()
         self.db.refresh(usuario)

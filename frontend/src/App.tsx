@@ -8,6 +8,7 @@ import { IAPage } from "@/pages/IAPage";
 import { PerfilPage } from "@/pages/PerfilPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { OnboardingPage } from "@/pages/OnboardingPage";
 
 export function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>
+        <Route path="/onboarding" element={<OnboardingPage />} />
         <Route
           element={
             <AppShell>

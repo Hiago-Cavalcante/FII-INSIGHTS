@@ -134,9 +134,11 @@ export function ComparadorPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="p-3 text-left text-xs font-medium text-muted-foreground">Métrica</th>
+                <th className="sticky left-0 z-10 bg-card p-2 text-left text-xs font-medium text-muted-foreground sm:p-3">
+                  Métrica
+                </th>
                 {selecionadosFundos.map((f) => (
-                  <th key={f.ticker} className="p-3 text-right">
+                  <th key={f.ticker} className="p-2 text-right sm:p-3">
                     <div className="flex flex-col items-end gap-1">
                       <span className="font-mono font-semibold text-foreground">{f.ticker}</span>
                       <ClasseBadge classe={f.classe} />
@@ -147,9 +149,11 @@ export function ComparadorPage() {
             </thead>
             <tbody>
               <tr className="border-b border-border/60">
-                <td className="p-3 text-muted-foreground">Classificação</td>
+                <td className="sticky left-0 z-10 bg-card p-2 text-muted-foreground sm:p-3">
+                  Classificação
+                </td>
                 {selecionadosFundos.map((f) => (
-                  <td key={f.ticker} className="p-3 text-right">
+                  <td key={f.ticker} className="p-2 text-right sm:p-3">
                     <ClassificacaoBadge classificacao={f.classificacao} />
                   </td>
                 ))}
@@ -159,12 +163,14 @@ export function ComparadorPage() {
                 const melhor = indiceMelhor(valores, m.dir);
                 return (
                   <tr key={m.label} className="border-b border-border/60 last:border-0">
-                    <td className="p-3 text-muted-foreground">{m.label}</td>
+                    <td className="sticky left-0 z-10 bg-card p-2 text-muted-foreground sm:p-3">
+                      {m.label}
+                    </td>
                     {valores.map((v, i) => (
                       <td
                         key={selecionadosFundos[i].ticker}
                         className={cn(
-                          "p-3 text-right tabular-nums",
+                          "p-2 text-right tabular-nums sm:p-3",
                           i === melhor ? "font-bold text-primary" : "text-foreground"
                         )}
                       >

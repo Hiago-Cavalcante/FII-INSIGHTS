@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useCarteira } from "@/hooks/useCarteira";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDividendos } from "@/hooks/useDividendos";
+import { useAuthStore } from "@/stores/authStore";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
 
@@ -9,10 +10,14 @@ export function InicioPage() {
   const { resumo } = useCarteira();
   const { topFiis } = useDashboard();
   const { dividendos } = useDividendos();
+  const user = useAuthStore((s) => s.user);
+  const primeiroNome = user?.nome?.trim().split(" ")[0];
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="text-2xl font-bold text-foreground">Olá 👋</h1>
+      <h1 className="text-2xl font-bold text-foreground">
+        {primeiroNome ? `Olá, ${primeiroNome}` : "Olá"}
+      </h1>
 
       <Link
         to="/carteira"
