@@ -29,8 +29,8 @@ A premissa "não tem auth / tabelas pessoais sem dono" estava **parcialmente des
 | Carteira (posições/dividendos/recomendações) | ✅ **escopada por dono** — sem IDOR/BOLA | `routers/carteira.py:116,186` |
 | Assistente IA | ✅ exige login | `routers/assistente.py:44` |
 | Chave do Gemini | ✅ **só no backend**, nunca exposta ao front | `routers/assistente.py:21` |
-| **`auth_secret`** | 🔴 **default inseguro hardcoded** — se `AUTH_SECRET` não for setado em prod, qualquer um forja token | `config.py:9` |
-| **`perfil.py`** | 🔴 **perfil global único** (`_PERFIL_ID="perfil-unico"`), **sem `get_current_user`** — todos os usuários leem/sobrescrevem o mesmo perfil | `routers/perfil.py:13,40,46` |
+| **`auth_secret`** | ✅ **corrigido** — `ENVIRONMENT=production` + validador recusam boot com secret vazio/default (commit `eee98e3`) | `config.py` |
+| **`perfil.py`** | ✅ **corrigido** — `usuario_id` (FK NOT NULL, unique) + `get_current_user`; escopado por dono como a carteira (commit `871b06c`) | `routers/perfil.py`, `models/perfil.py` |
 | Rate limiting | 🟠 **inexistente** — `/login`/`/register` brute-forçáveis; `/assistente/explicar` abusável (custo Gemini) | `main.py` |
 | Verificação de e-mail | 🟠 inexistente — `register` faz auto-login imediato | `routers/auth.py:44` |
 | Reset de senha | 🟠 inexistente | — |
@@ -58,9 +58,9 @@ A premissa "não tem auth / tabelas pessoais sem dono" estava **parcialmente des
 ## 4. Pilar 2 — Hardening (checklist priorizada)
 
 ### P0 — bloqueia o lançamento (sem isso, não abrir ao público)
-1. `AUTH_SECRET` forte e obrigatório em prod.
-2. `perfil.py` escopado por dono.
-3. **Rate limit no Gemini** — `/assistente/explicar` com limite por usuário (ex.: N/dia). Maior risco de **custo**.
+1. ✅ `AUTH_SECRET` forte e obrigatório em prod. *(feito — commit `eee98e3`; falta setar `ENVIRONMENT=production` + `AUTH_SECRET` no Render)*
+2. ✅ `perfil.py` escopado por dono. *(feito — commit `871b06c`; migração `cbffd75e05cd`)*
+3. **Rate limit no Gemini** — `/assistente/explicar` com limite por usuário (ex.: N/dia). Maior risco de **custo**. ⬅️ **próximo**
 4. **Rate limit em `/auth/*`** — `slowapi` é o caminho mais simples no FastAPI (**versão a reverificar**).
 
 ### P1 — antes de convidar usuários reais
