@@ -4,12 +4,10 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
-from app.utils.rate_limit import limiter
 from app.routers import (
     assistente,
     auth,
@@ -21,13 +19,15 @@ from app.routers import (
     ranking,
     scoring,
 )
+from app.utils.rate_limit import limiter
 
 logging.basicConfig(level=getattr(logging, settings.log_level))
 
 app = FastAPI(title="FII Insights API", version="1.0.0")
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# slowapi não é totalmente tipado; o handler tem assinatura compatível em runtime.
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 app.add_middleware(
     CORSMiddleware,
