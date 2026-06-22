@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -11,6 +9,7 @@ from app.database import get_db
 from app.models.usuario import Usuario
 from app.services.assistente_llm import AssistenteIndisponivel, AssistenteLLM, GeminiClient
 from app.services.assistente_service import FundoNaoEncontrado, responder
+from app.utils.rate_limit import limiter, usuario_key_func
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/assistente", tags=["assistente"])
@@ -39,7 +38,9 @@ class ExplicarOut(BaseModel):
 
 
 @router.post("/explicar", response_model=ExplicarOut)
+@limiter.limit("5/minute;20/day", key_func=usuario_key_func)
 def explicar(
+    request: Request,
     body: ExplicarIn,
     usuario: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db),
