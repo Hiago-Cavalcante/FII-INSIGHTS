@@ -41,7 +41,8 @@ class UsuarioOut(BaseModel):
 
 
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
-def register(body: RegistroIn, db: Session = Depends(get_db)) -> TokenOut:
+@limiter.limit("5/hour", key_func=ip_key_func)
+def register(request: Request, body: RegistroIn, db: Session = Depends(get_db)) -> TokenOut:
     """Cria um usuário e já retorna o token (auto-login)."""
     repo = UsuarioRepository(db)
     if repo.buscar_por_email(body.email) is not None:
