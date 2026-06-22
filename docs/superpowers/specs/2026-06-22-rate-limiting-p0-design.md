@@ -43,7 +43,7 @@ P0 #1 (`AUTH_SECRET` obrigatório, `eee98e3`) e P0 #2 (perfil escopado por dono,
 ## 4. Detalhes de correção (não óbvios)
 
 ### 4.1 IP real atrás do proxy do Render
-O `get_remote_address` padrão lê `request.client.host` — atrás do Render isso é o **proxy**, fazendo todos os usuários compartilharem um único IP. Solução: `ip_key_func` que lê o **primeiro hop de `X-Forwarded-For`** (`xff.split(",")[0].strip()`), com fallback para `request.client.host` (dev local, sem proxy).
+O `get_remote_address` padrão lê `request.client.host` — atrás do Render isso é o **proxy**, fazendo todos os usuários compartilharem um único IP. Solução: `ip_key_func` que lê o **primeiro hop de `X-Forwarded-For`** (`xff.split(",")[0].strip()`), com fallback para `request.client.host` (dev local, sem proxy). ⚠️ O primeiro hop é **forjável pelo cliente** — limitação conhecida e atenuantes em §7(b).
 
 ### 4.2 Cota do assistente por usuário, não por IP
 O `key_func` do slowapi recebe apenas o `Request`. Para chavear por usuário criamos `usuario_key_func` que **decodifica o `sub` do Bearer token** (apenas `jwt.decode` com o mesmo `auth_secret`/algoritmo já usados em `utils/security.py`, **sem** consulta ao banco). Fallback para `ip_key_func` se não houver token válido. Assim dois usuários atrás do mesmo NAT não dividem a cota de 20/dia.
@@ -85,9 +85,11 @@ O `key_func` do slowapi recebe apenas o `Request`. Para chavear por usuário cri
 
 ---
 
-## 7. Limitação conhecida (trabalho futuro)
+## 7. Limitações conhecidas (trabalho futuro)
 
-A cota diária (20/dia) usa storage **in-memory**; como o Render free **hiberna após ~15 min ocioso**, o contador **reseta na reinicialização** — é *best-effort*. Os freios reais de abuso são o **limite por minuto** e o **teto diário do próprio free tier do Gemini** (projeto compartilhado, $0). Migrar para storage persistente (Postgres/Redis) é P1/trabalho futuro e está registrado em `alpha-seguranca-pwa.md`.
+**(a) Cota diária in-memory.** A cota diária (20/dia) usa storage **in-memory**; como o Render free **hiberna após ~15 min ocioso**, o contador **reseta na reinicialização** — é *best-effort*. Os freios reais de abuso são o **limite por minuto** e o **teto diário do próprio free tier do Gemini** (projeto compartilhado, $0). Migrar para storage persistente (Postgres/Redis) é P1/trabalho futuro e está registrado em `alpha-seguranca-pwa.md`.
+
+**(b) `X-Forwarded-For` é forjável (limite por IP de `/auth/*`).** O `ip_key_func` usa o **primeiro hop** do `X-Forwarded-For`, que é um header **controlado pelo cliente**. Atrás do proxy do Render, um atacante que gire o `X-Forwarded-For` a cada requisição gera uma chave nova e **fura o limite de brute-force** de `/auth/login`/`/auth/register`. Atenuantes: o login ainda passa por `bcrypt` (lento por design), e — crucialmente — **o limite que protege custo (`/assistente/explicar`) é chaveado por usuário (JWT `sub`), não por IP**, logo não é afetado por essa técnica. O hop *confiável* atrás de um proxy é o **último** (anexado pelo proxy), não o primeiro; o endurecimento correto exige saber quantos proxies confiáveis o Render interpõe e ler `xff.split(",")[-(n+1)]` (ou usar `request.client.host` com `--proxy-headers`/`--forwarded-allow-ips`). Como o comportamento exato do XFF no Render ainda está **a reverificar** (ver `alpha-seguranca-pwa.md`), mantém-se o primeiro hop no alpha e o endurecimento fica como trabalho futuro. Defesa estrutural complementar (futuro): lockout por conta após N falhas, que independe do IP.
 
 ---
 
