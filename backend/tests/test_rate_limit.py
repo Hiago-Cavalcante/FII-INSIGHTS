@@ -55,8 +55,11 @@ def test_assistente_cota_e_por_usuario_nao_por_ip(client_carteira):
     limiter.enabled = True
     try:
         body = {"ticker": "HGLG11", "pergunta": "?", "nivel": "iniciante"}
-        for _ in range(6):  # estoura a cota do usuário A
-            client.post("/api/v1/assistente/explicar", json=body, headers=ha)
+        respostas_a = [
+            client.post("/api/v1/assistente/explicar", json=body, headers=ha).status_code
+            for _ in range(6)
+        ]
+        assert respostas_a[-1] == 429  # a 6ª chamada de A estoura (5/minute)
         r = client.post("/api/v1/assistente/explicar", json=body, headers=hb)
         assert r.status_code == 200
     finally:
