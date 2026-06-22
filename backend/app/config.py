@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # gemini-2.5-flash: modelo do free tier que de fato responde nesta conta
     # (o 2.0-flash retorna 429 com limit:0 no free tier desta chave).
     gemini_model: str = "gemini-2.5-flash"
+    rate_limit_enabled: bool = True  # desligado nos testes (RATE_LIMIT_ENABLED=false)
 
     model_config = SettingsConfigDict(
         env_file=".env",

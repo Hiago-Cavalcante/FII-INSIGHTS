@@ -1,3 +1,7 @@
+import os
+
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+
 from collections.abc import Generator
 from datetime import date, timedelta
 from decimal import Decimal

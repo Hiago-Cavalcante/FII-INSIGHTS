@@ -1,12 +1,11 @@
-from __future__ import annotations
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.usuario import Usuario
 from app.repositories.usuario_repository import UsuarioRepository
+from app.utils.rate_limit import ip_key_func, limiter
 from app.utils.security import (
     criar_access_token,
     get_current_user,
@@ -53,7 +52,8 @@ def register(body: RegistroIn, db: Session = Depends(get_db)) -> TokenOut:
 
 
 @router.post("/login", response_model=TokenOut)
-def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
+@limiter.limit("10/minute", key_func=ip_key_func)
+def login(request: Request, body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
     """Autentica por e-mail e senha; mensagem genérica em falha."""
     usuario = UsuarioRepository(db).buscar_por_email(body.email)
     if usuario is None or not verificar_senha(body.senha, usuario.senha_hash):
