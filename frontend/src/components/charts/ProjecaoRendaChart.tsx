@@ -25,12 +25,22 @@ export function ProjecaoRendaChart({ serie, rendaAlvo }: Props) {
       <AreaChart data={dados} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
         <XAxis
           dataKey="mes"
-          tick={{ fontSize: 10 }}
+          className="text-muted-foreground"
+          tick={{ fontSize: 10, fill: "currentColor" }}
           tickFormatter={(m: number) => `${Math.round(m / 12)}a`}
           interval="preserveStartEnd"
         />
         <YAxis hide />
         <Tooltip
+          contentStyle={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.5rem",
+            color: "var(--foreground)",
+            fontSize: "0.75rem",
+          }}
+          labelStyle={{ color: "var(--foreground)" }}
+          itemStyle={{ color: "var(--foreground)" }}
           formatter={(v: number | string | readonly (number | string)[]) => `R$ ${Number(v).toFixed(2)}/mês`}
           labelFormatter={(m: number) => `Mês ${m}`}
         />
@@ -43,11 +53,13 @@ export function ProjecaoRendaChart({ serie, rendaAlvo }: Props) {
           />
         )}
         <Area
+          className="text-primary"
           dataKey="renda"
-          stroke="hsl(var(--primary))"
-          fill="hsl(var(--primary))"
-          fillOpacity={0.18}
+          stroke="currentColor"
+          fill="currentColor"
+          fillOpacity={0.2}
           dot={false}
+          isAnimationActive={false}
         />
       </AreaChart>
     </ResponsiveContainer>

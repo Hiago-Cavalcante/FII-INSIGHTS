@@ -13,13 +13,35 @@ export function RendaPorFundoChart({ porFundo }: { porFundo: FundoRenda[] }) {
     <ResponsiveContainer width="100%" height={Math.max(120, dados.length * 40)}>
       <BarChart data={dados} layout="vertical" margin={{ left: 8, right: 8 }}>
         <XAxis type="number" hide />
-        <YAxis type="category" dataKey="ticker" width={64} tick={{ fontSize: 12 }} />
+        <YAxis
+          type="category"
+          dataKey="ticker"
+          width={64}
+          className="text-muted-foreground"
+          tick={{ fontSize: 12, fill: "currentColor" }}
+        />
         <Tooltip
+          cursor={{ fill: "#94a3b8", fillOpacity: 0.15 }}
+          contentStyle={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.5rem",
+            color: "var(--foreground)",
+            fontSize: "0.75rem",
+          }}
+          labelStyle={{ color: "var(--foreground)" }}
+          itemStyle={{ color: "var(--foreground)" }}
           formatter={(v: number | string | readonly (number | string)[]) =>
             `R$ ${Number(v).toFixed(2)}/mês`
           }
         />
-        <Bar dataKey="renda" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+        <Bar
+          className="text-primary"
+          dataKey="renda"
+          fill="currentColor"
+          radius={[0, 4, 4, 0]}
+          isAnimationActive={false}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
