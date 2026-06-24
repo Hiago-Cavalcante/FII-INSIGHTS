@@ -75,3 +75,11 @@ def test_sem_indicadores_nao_inventa_score(db_session):
     responder(db_session, "NOVO11", "Por que?", nivel="iniciante", llm=fake)
     assert "Evitar" not in fake.ultimo_prompt
     assert "não há score" in fake.ultimo_prompt.lower() or "sem indicadores" in fake.ultimo_prompt.lower()
+
+
+def test_extrair_tickers_detecta_normaliza_e_dedupe():
+    from app.services.assistente_service import extrair_tickers
+
+    assert extrair_tickers("Por que XPLG11 e hglg11?") == ["XPLG11", "HGLG11"]
+    assert extrair_tickers("o que é dividend yield?") == []
+    assert extrair_tickers("XPLG11, XPLG11 de novo") == ["XPLG11"]

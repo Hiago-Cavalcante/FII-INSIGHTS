@@ -4,6 +4,7 @@ fundo e pede ao LLM para reescrevê-lo em linguagem simples — sem inventar nad
 
 from __future__ import annotations
 
+import re
 from typing import Literal, TypedDict
 
 from sqlalchemy.orm import Session
@@ -20,6 +21,19 @@ from app.services.scoring_service import (
     detalhar_score,
     resolver_perfil,
 )
+
+_TICKER_RE = re.compile(r"\b[a-zA-Z]{4}11\b")
+
+
+def extrair_tickers(texto: str) -> list[str]:
+    """Tickers de FII (4 letras + 11) citados no texto, em maiúsculas, sem duplicar."""
+    vistos: list[str] = []
+    for achado in _TICKER_RE.findall(texto):
+        tk = achado.upper()
+        if tk not in vistos:
+            vistos.append(tk)
+    return vistos
+
 
 Nivel = Literal["iniciante", "analitico"]
 
