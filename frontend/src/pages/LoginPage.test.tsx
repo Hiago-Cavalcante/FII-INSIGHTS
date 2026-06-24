@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { LoginPage } from "./LoginPage";
 
@@ -24,6 +24,26 @@ describe("LoginPage", () => {
     fireEvent.change(screen.getByLabelText(/senha/i), { target: { value: "segredo123" } });
     fireEvent.click(screen.getByRole("button", { name: /entrar/i }));
     await waitFor(() => expect(loginMock).toHaveBeenCalledWith("a@b.com", "segredo123"));
+  });
+
+  it("desabilita o botão e mostra 'Entrando…' enquanto o login está pendente", async () => {
+    let resolver: () => void = () => {};
+    loginMock.mockReturnValue(
+      new Promise<void>((res) => {
+        resolver = res;
+      })
+    );
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: "a@b.com" } });
+    fireEvent.change(screen.getByLabelText(/senha/i), { target: { value: "segredo123" } });
+    fireEvent.click(screen.getByRole("button", { name: /entrar/i }));
+
+    await waitFor(() => expect(screen.getByRole("button")).toBeDisabled());
+    expect(screen.getByRole("button")).toHaveTextContent(/entrando/i);
+
+    await act(async () => {
+      resolver();
+    });
   });
 
   // O caminho de erro (alerta quando o login falha) NÃO é coberto aqui por uma

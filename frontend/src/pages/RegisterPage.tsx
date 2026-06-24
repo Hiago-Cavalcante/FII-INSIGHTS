@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export function RegisterPage() {
@@ -9,6 +10,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -17,11 +19,14 @@ export function RegisterPage() {
       setErro("A senha precisa ter ao menos 8 caracteres.");
       return;
     }
+    setEnviando(true);
     try {
       await register(nome.trim(), email, senha);
       navigate("/onboarding");
     } catch {
       setErro("Não foi possível cadastrar (e-mail já em uso?).");
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -73,9 +78,11 @@ export function RegisterPage() {
         )}
         <button
           type="submit"
-          className="rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground"
+          disabled={enviando}
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground transition-opacity disabled:opacity-70"
         >
-          Cadastrar
+          {enviando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+          {enviando ? "Cadastrando…" : "Cadastrar"}
         </button>
       </form>
       <p className="text-center text-sm text-muted-foreground">

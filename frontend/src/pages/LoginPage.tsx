@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export function LoginPage() {
@@ -8,15 +9,19 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErro(null);
+    setEnviando(true);
     try {
       await login(email, senha);
       navigate("/");
     } catch {
       setErro("E-mail ou senha inválidos.");
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -57,9 +62,11 @@ export function LoginPage() {
         )}
         <button
           type="submit"
-          className="rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground"
+          disabled={enviando}
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground transition-opacity disabled:opacity-70"
         >
-          Entrar
+          {enviando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+          {enviando ? "Entrando…" : "Entrar"}
         </button>
       </form>
       <p className="text-center text-sm text-muted-foreground">

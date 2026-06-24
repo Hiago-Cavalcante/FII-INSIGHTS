@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import App from "./App";
+import { ServidorAcordando } from "./components/ServidorAcordando";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -20,6 +21,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ServidorAcordando />
         <App />
         <Toaster richColors position="top-right" />
       </BrowserRouter>
