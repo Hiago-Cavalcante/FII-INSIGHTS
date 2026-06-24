@@ -1,8 +1,7 @@
 # Tour guiado contextual (pilar Educação) — Design
 
-> **Status:** aprovado (Parte 1) e **PARADO/guardado** a pedido do autor em 2026-06-24.
-> Retomar a partir de `writing-plans` quando priorizado. Não implementar antes disso.
-> Rastreabilidade: estende **RF-42** (educação contextual) e ataca a **lacuna 8** (baixa adaptação à linguagem do iniciante) / persona **P1 Iniciante**. Sugerido registrar **RF-45** em `docs/REQUISITOS.md` ("Tour guiado contextual de navegação e features").
+> **Status:** retomado 2026-06-24 — **Parte 1 + Parte 2 APROVADAS**. Escopo: os **10 tours de uma vez**. Próximo passo: `writing-plans` → implementação (TDD).
+> Rastreabilidade: estende **RF-42** (educação contextual) e ataca a **lacuna 8** (baixa adaptação à linguagem do iniciante) / persona **P1 Iniciante**. Registrar **RF-45** em `docs/REQUISITOS.md §5.6` ("Tour guiado contextual de navegação e features", Should, P1).
 
 ## Problema
 
@@ -55,9 +54,26 @@ Tours podem deep-linkar para o `glossario.ts` (reutilizar conteúdo RF-42, sem d
 
 `useRegistrarTour` marca o tour como **visto** (`vistos[]`) → alimenta um pontinho "novo" discreto no índice.
 
-## Conteúdo / cobertura (Parte 2 — proposta, não revisada com o autor)
+## Conteúdo / cobertura (Parte 2 — APROVADA)
 
-Um tour por sub-feature: Início, Carteira(Posições/Dividendos/Simulador), Análise(Ranking/Clusters), IA, Perfil. Texto sem jargão para P1; cada passo curto. Onde fizer sentido, passo aponta para o "?" do indicador (ponte com glossário).
+**Padrão de sub-abas confirmado:** `CarteiraPage` (posicoes/dividendos/simulador/recomendacoes) e `AnalisePage` (ranking/clusters/comparar) usam render condicional (`sub === x && <View/>`) → só a sub-view ativa monta. Logo, `useRegistrarTour("<id>")` vai **dentro de cada sub-view** (registra/limpa no mount/unmount). Telas sem sub-aba (Início, IA, Perfil) chamam direto na própria página.
+
+**10 tours (um por sub-feature):**
+
+| id | Onde | Foco (P1, sem jargão) |
+|---|---|---|
+| `inicio` | InicioPage | patrimônio, renda estimada, destaques + explica as 5 abas (navegação) |
+| `carteira-posicoes` | PosicoesView | cadastrar posição, preço médio, total |
+| `carteira-dividendos` | DividendosView | proventos recebidos, gráfico |
+| `carteira-simulador` | SimuladorView | simular renda futura (snowball) |
+| `carteira-recomendacoes` | RecomendacoesView | preço-teto, rebalanceamento |
+| `analise-ranking` | RankingPage | score, classificação, filtro por perfil → ponte pro "?" dos indicadores (glossário/RF-42) |
+| `analise-clusters` | ClustersPage | o que é o agrupamento K-Means |
+| `analise-comparar` | ComparadorPage | comparar fundos lado a lado |
+| `ia` | IAPage | o assistente explica o score (não inventa) |
+| `perfil` | PerfilPage | tipo, objetivos, pesos personalizados |
+
+Cada tour 3-5 passos curtos; alvos via `data-tour="..."` nos elementos reais; onde fizer sentido, passo aponta pro "?" do indicador (reusa o glossário, sem duplicar).
 
 ## Testes (TDD)
 
@@ -67,12 +83,12 @@ Um tour por sub-feature: Início, Carteira(Posições/Dividendos/Simulador), An�
 - `IndiceTours` — Testing Library: renderiza todos os tours; clique navega/dispara.
 - Integração driver.js (overlay real): verificação manual no **viewport mobile** (verification-before-completion).
 
-## Escopo / faseamento
+## Escopo
 
-Infra (hook, store, registro, índice, botão) é modesta; o grosso é o **conteúdo**. Possível faseamento: infra + tours de Início/Carteira primeiro, depois Análise/IA/Perfil. Cabe em julho/2026.
+Os **10 tours de uma vez** (decisão do autor). Infra (hook, store, registro, índice, botão) é modesta; o grosso é o **conteúdo**. Cabe em julho/2026.
 
-## Pendências ao retomar
+## Resolvido (eram pendências)
 
-- Apresentar Parte 2 (conteúdo/testes/RF) e obter aval.
-- Registrar RF-45 em `docs/REQUISITOS.md` (rastreabilidade RNF-04).
-- Confirmar o padrão real de sub-abas em `CarteiraPage`/`AnalisePage` (render condicional vs. sempre montado) p/ o registro de contexto.
+- ✅ Parte 2 apresentada e aprovada (10 tours).
+- ✅ Padrão de sub-abas confirmado (render condicional → `useRegistrarTour` por sub-view).
+- ⏳ Registrar **RF-45** em `docs/REQUISITOS.md §5.6` — será um passo do plano de implementação.
