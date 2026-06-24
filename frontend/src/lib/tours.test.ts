@@ -25,7 +25,7 @@ describe("tours", () => {
   });
   it("agruparPorAba agrupa preservando a ordem das abas", () => {
     const grupos = agruparPorAba();
-    expect(grupos.map((g) => g.aba)).toEqual(["Inicio", "Carteira", "Analise", "IA", "Perfil"]);
+    expect(grupos.map((g) => g.aba)).toEqual(["Início", "Carteira", "Análise", "IA", "Perfil"]);
     const carteira = grupos.find((g) => g.aba === "Carteira");
     expect(carteira?.tours).toHaveLength(4);
   });
