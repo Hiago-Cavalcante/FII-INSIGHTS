@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { CarteiraPage } from "./CarteiraPage";
 
 vi.mock("@/hooks/useCarteira", () => ({
@@ -34,14 +35,14 @@ vi.mock("@/components/carteira/SimuladorView", () => ({
 
 describe("CarteiraPage abas", () => {
   it("troca para a aba Dividendos e mostra a renda mensal", () => {
-    render(<CarteiraPage />);
+    render(<MemoryRouter><CarteiraPage /></MemoryRouter>);
     expect(screen.getByText("Carregar carteira de exemplo")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Dividendos" }));
     expect(screen.getByText(/Renda mensal estimada/)).toBeInTheDocument();
   });
 
   it("troca para a aba Simulador", () => {
-    render(<CarteiraPage />);
+    render(<MemoryRouter><CarteiraPage /></MemoryRouter>);
     fireEvent.click(screen.getByRole("tab", { name: "Simulador" }));
     expect(screen.getByText(/Renda mensal projetada/)).toBeInTheDocument();
   });

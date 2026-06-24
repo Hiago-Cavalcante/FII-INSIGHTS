@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import { lerTabDoEstado } from "@/lib/navTab";
 import { cn } from "@/lib/utils";
 import { RankingPage } from "./RankingPage";
 import { ClustersPage } from "./ClustersPage";
 import { ComparadorPage } from "./ComparadorPage";
 
 type Sub = "ranking" | "clusters" | "comparar";
+
+const SUBS: readonly Sub[] = ["ranking", "clusters", "comparar"];
 
 const ROTULOS: Record<Sub, string> = {
   ranking: "Ranking",
@@ -13,7 +17,10 @@ const ROTULOS: Record<Sub, string> = {
 };
 
 export function AnalisePage() {
-  const [sub, setSub] = useState<Sub>("ranking");
+  const location = useLocation();
+  const [sub, setSub] = useState<Sub>(
+    () => (lerTabDoEstado(location.state, SUBS) as Sub | null) ?? "ranking"
+  );
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">Análise</h1>

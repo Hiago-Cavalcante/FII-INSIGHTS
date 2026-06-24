@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import { lerTabDoEstado } from "@/lib/navTab";
 import { cn } from "@/lib/utils";
 import { PosicoesView } from "@/components/carteira/PosicoesView";
 import { DividendosView } from "@/components/carteira/DividendosView";
@@ -6,6 +8,8 @@ import { SimuladorView } from "@/components/carteira/SimuladorView";
 import { RecomendacoesView } from "@/components/carteira/RecomendacoesView";
 
 type Sub = "posicoes" | "dividendos" | "simulador" | "recomendacoes";
+
+const SUBS: readonly Sub[] = ["posicoes", "dividendos", "simulador", "recomendacoes"];
 
 const ROTULOS: Record<Sub, string> = {
   posicoes: "Posições",
@@ -15,7 +19,10 @@ const ROTULOS: Record<Sub, string> = {
 };
 
 export function CarteiraPage() {
-  const [sub, setSub] = useState<Sub>("posicoes");
+  const location = useLocation();
+  const [sub, setSub] = useState<Sub>(
+    () => (lerTabDoEstado(location.state, SUBS) as Sub | null) ?? "posicoes"
+  );
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">Minha Carteira</h1>
