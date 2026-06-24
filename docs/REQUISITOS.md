@@ -140,6 +140,7 @@ Cada requisito funcional recebe um ID `RF-NN`; cada não funcional, `RNF-NN`. Os
 | RF-40 | Linguagem adaptada ao perfil (iniciante, sem jargão) | 🎯 | Should | pág. 9 · lacuna 8 · P1 |
 | RF-41 | Relatórios personalizados (gerados por IA/sistema) | 🎯 (básico) | Should | pág. 17 |
 | RF-42 | Conteúdo de educação financeira contextual (microconteúdo por indicador) | 🎯 | Should | pág. 7,16 · P1 |
+| RF-45 | Tour guiado contextual de navegação e features (coach marks por tela/sub-feature, sob demanda) | 🎯 | Should | pág. 16 · lacuna 8 · P1 · estende RF-42 |
 
 > **RF-38 é o maior risco técnico novo.** O assistente *explica* o scoring determinístico — não inventa análise. As respostas são fundamentadas nos valores, pesos e classificações já calculados pelo sistema (garante rastreabilidade — RNF-04). Definir provedor/custo de LLM antes de implementar.
 
