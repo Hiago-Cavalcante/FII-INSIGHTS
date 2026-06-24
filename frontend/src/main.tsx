@@ -6,6 +6,8 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import App from "./App";
 import { ServidorAcordando } from "./components/ServidorAcordando";
+import { ConviteInstalarPwa } from "./components/ConviteInstalarPwa";
+import { registrarServiceWorker } from "./pwa/registrar";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -23,8 +25,11 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <ServidorAcordando />
         <App />
+        <ConviteInstalarPwa />
         <Toaster richColors position="top-right" />
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>
 );
+
+registrarServiceWorker();
