@@ -5,6 +5,7 @@ import { useDividendos } from "@/hooks/useDividendos";
 import { useAuthStore } from "@/stores/authStore";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
+import { IndiceTours } from "@/components/ui/IndiceTours";
 
 export function InicioPage() {
   const { resumo } = useCarteira();
@@ -71,13 +72,7 @@ export function InicioPage() {
         </ul>
       </section>
 
-      <div className="rounded-2xl border border-border bg-accent/40 p-4">
-        <p className="text-sm font-semibold text-foreground">💡 Aprenda enquanto investe</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Toque no "?" ao lado de qualquer indicador para entender o que ele significa,
-          sem jargão.
-        </p>
-      </div>
+      <IndiceTours />
     </div>
   );
 }
