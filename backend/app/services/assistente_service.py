@@ -137,6 +137,58 @@ def _formatar_contexto(ctx: ContextoFundo) -> str:
     return "\n".join(linhas)
 
 
+from app.services.glossario import BLURB_PLATAFORMA, texto_glossario
+
+
+def montar_contexto_chat(db: Session, mensagem: str, max_fundos: int = 2) -> str:
+    """Grounding do chat: plataforma + glossário + fundos citados (decomposição do score)."""
+    partes = [BLURB_PLATAFORMA, texto_glossario()]
+    for ticker in extrair_tickers(mensagem)[:max_fundos]:
+        try:
+            ctx = montar_contexto_fundo(db, ticker, "iniciante")
+        except FundoNaoEncontrado:
+            continue
+        partes.append(_formatar_contexto(ctx))
+    return "\n\n".join(partes)
+
+
+def _system_prompt_chat(nivel: Nivel) -> str:
+    tom = (
+        "sem jargão, com analogias simples do dia a dia"
+        if nivel == "iniciante"
+        else "pode usar termos técnicos e mostrar os números"
+    )
+    return (
+        "Você é o assistente educativo do FII Insights. Ajuda SOMENTE com fundos imobiliários "
+        "(FIIs), FIAGROs e o uso desta plataforma. Se a pergunta fugir desse tema, recuse com "
+        "gentileza e ofereça ajudar com FIIs. Use SOMENTE os fatos do contexto fornecido "
+        "(glossário, descrição da plataforma e dados de fundos citados); NÃO invente números nem "
+        "dados, e NÃO recomende compra ou venda. Use a conversa anterior para entender "
+        f"perguntas de continuação. Nível do leitor: {nivel} — escreva {tom}."
+    )
+
+
+def responder_chat(
+    db: Session,
+    mensagem: str,
+    historico: list[dict[str, str]],
+    nivel: Nivel,
+    llm: AssistenteLLM,
+) -> str:
+    """Responde a uma pergunta geral de FII, ancorada no grounding e com guardrail de tema."""
+    contexto = montar_contexto_chat(db, mensagem)
+    system = _system_prompt_chat(nivel)
+    partes = [contexto]
+    if historico:
+        linhas = [
+            f"{'Usuário' if h['papel'] == 'usuario' else 'Assistente'}: {h['texto']}"
+            for h in historico
+        ]
+        partes.append("Conversa até agora:\n" + "\n".join(linhas))
+    partes.append(f"Pergunta do investidor: {mensagem}")
+    return llm.gerar(system, "\n\n".join(partes))
+
+
 def responder(
     db: Session,
     ticker: str,

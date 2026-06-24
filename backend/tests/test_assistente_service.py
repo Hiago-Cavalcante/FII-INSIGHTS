@@ -83,3 +83,36 @@ def test_extrair_tickers_detecta_normaliza_e_dedupe():
     assert extrair_tickers("Por que XPLG11 e hglg11?") == ["XPLG11", "HGLG11"]
     assert extrair_tickers("o que é dividend yield?") == []
     assert extrair_tickers("XPLG11, XPLG11 de novo") == ["XPLG11"]
+
+
+def test_chat_inclui_glossario_e_guardrail(db_session):
+    from app.services.assistente_service import responder_chat
+
+    fake = FakeLLM("resp")
+    out = responder_chat(db_session, "O que é dividend yield?", [], "iniciante", fake)
+    assert out == "resp"
+    sys = fake.ultimo_system.lower()
+    assert "fii" in sys and "recus" in sys  # escopo + recusa off-topic
+    assert "dividend yield" in fake.ultimo_prompt.lower()  # glossário no contexto
+
+
+def test_chat_injeta_fundo_quando_ticker_citado(db_session):
+    from app.services.assistente_service import responder_chat
+
+    _fundo(db_session, "HGLG11")
+    fake = FakeLLM("r")
+    responder_chat(db_session, "Por que HGLG11 tem essa nota?", [], "iniciante", fake)
+    assert "HGLG11" in fake.ultimo_prompt
+    assert "dy_atual" in fake.ultimo_prompt  # decomposição do score (grounding do fundo)
+
+
+def test_chat_usa_historico_para_followup(db_session):
+    from app.services.assistente_service import responder_chat
+
+    fake = FakeLLM("r")
+    hist = [
+        {"papel": "usuario", "texto": "o que é DY?"},
+        {"papel": "assistente", "texto": "é o rendimento anual sobre o preço"},
+    ]
+    responder_chat(db_session, "e o P/VP?", hist, "iniciante", fake)
+    assert "o que é DY?" in fake.ultimo_prompt
