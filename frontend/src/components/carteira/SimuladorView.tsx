@@ -6,10 +6,12 @@ import { projetarRenda } from "@/lib/simulador";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ProjecaoRendaChart } from "@/components/charts/ProjecaoRendaChart";
 import { formatPercent } from "@/lib/formato";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 const TAXA_FALLBACK = 0.008; // 0,8%/mês (~10% a.a.) quando não há carteira
 
 export function SimuladorView() {
+  useRegistrarTour("carteira-simulador");
   const { resumo } = useCarteira();
   const { dividendos } = useDividendos();
   const { aporteMensal, meses, rendaAlvo, setAporte, setMeses, setRendaAlvo } = useSimuladorStore();
@@ -48,7 +50,7 @@ export function SimuladorView() {
         <ProjecaoRendaChart serie={r.serie} rendaAlvo={rendaAlvo} />
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
+      <div data-tour="simulador-controles" className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
         <label className="flex flex-col gap-1 text-sm text-foreground">
           Aporte mensal
           <input

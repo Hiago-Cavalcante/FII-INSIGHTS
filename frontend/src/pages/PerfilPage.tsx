@@ -10,6 +10,7 @@ import { Check, ChevronDown, LogOut } from "lucide-react";
 import { pesosSchema, type PesosForm } from "@/lib/pesosSchema";
 import { simularRanking } from "@/api/endpoints/ranking";
 import { useAuth } from "@/hooks/useAuth";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 // PesosForm traz percentuais inteiros (somam 100); converte para frações (somam 1.0).
 function toPesosIndicadores(p: PesosForm): PesosIndicadores {
@@ -295,6 +296,7 @@ const FAIXAS: Array<{ faixa: string; label: string; cor: string }> = [
 ];
 
 export function PerfilPage() {
+  useRegistrarTour("perfil");
   const { tipo, setTipo } = usePerfilStore();
   const { logout } = useAuth();
   const [secao, setSecao] = useState<"pesos" | "custom" | "sobre" | null>(null);
@@ -313,7 +315,7 @@ export function PerfilPage() {
       </div>
 
       {/* Seletor compacto */}
-      <div className="flex flex-col gap-2">
+      <div data-tour="perfil-tipo" className="flex flex-col gap-2">
         {PERFIS.map((p) => {
           const sel = tipo === p.tipo;
           return (
@@ -344,28 +346,30 @@ export function PerfilPage() {
       </div>
 
       {/* Pesos do perfil ativo */}
-      <Secao
-        titulo={`Pesos do perfil ${ativo.rotulo}`}
-        aberta={secao === "pesos"}
-        onToggle={() => toggle("pesos")}
-      >
-        <div className="flex flex-col gap-2">
-          {ativo.pesos.map((w) => (
-            <div key={w.indicador} className="flex items-center gap-2">
-              <span className="flex-1 text-sm text-muted-foreground">{w.indicador}</span>
-              <div className="h-1.5 w-20 rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${(w.peso / 25) * 100}%` }}
-                />
+      <div data-tour="perfil-pesos">
+        <Secao
+          titulo={`Pesos do perfil ${ativo.rotulo}`}
+          aberta={secao === "pesos"}
+          onToggle={() => toggle("pesos")}
+        >
+          <div className="flex flex-col gap-2">
+            {ativo.pesos.map((w) => (
+              <div key={w.indicador} className="flex items-center gap-2">
+                <span className="flex-1 text-sm text-muted-foreground">{w.indicador}</span>
+                <div className="h-1.5 w-20 rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${(w.peso / 25) * 100}%` }}
+                  />
+                </div>
+                <span className="w-9 text-right text-xs font-medium tabular-nums text-foreground">
+                  {w.peso}%
+                </span>
               </div>
-              <span className="w-9 text-right text-xs font-medium tabular-nums text-foreground">
-                {w.peso}%
-              </span>
-            </div>
-          ))}
-        </div>
-      </Secao>
+            ))}
+          </div>
+        </Secao>
+      </div>
 
       {/* Personalizar */}
       <Secao

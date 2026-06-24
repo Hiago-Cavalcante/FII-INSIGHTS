@@ -3,8 +3,10 @@ import { Trash2, Sparkles } from "lucide-react";
 import { useCarteira } from "@/hooks/useCarteira";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClasseBadge } from "@/components/ui/ClasseBadge";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 export function PosicoesView() {
+  useRegistrarTour("carteira-posicoes");
   const { posicoes, resumo, isLoading, isError, aporte, remover, carregarExemplo, limpar } =
     useCarteira();
   const [ticker, setTicker] = useState("");
@@ -35,7 +37,7 @@ export function PosicoesView() {
   return (
     <div className="flex flex-col gap-4">
       {resumo && !vazia && (
-        <section className="glass rounded-2xl p-4">
+        <section data-tour="carteira-total" className="glass rounded-2xl p-4">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground">Patrimônio investido</p>
             <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -104,7 +106,7 @@ export function PosicoesView() {
       )}
 
       {/* Cadastro manual (RF-01) — recolhido, secundário ao exemplo */}
-      <details className="rounded-2xl border border-border bg-card">
+      <details data-tour="carteira-add" className="rounded-2xl border border-border bg-card">
         <summary className="cursor-pointer p-4 text-sm font-medium text-foreground">
           Adicionar fundo manualmente
         </summary>

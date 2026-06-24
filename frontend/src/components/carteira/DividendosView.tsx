@@ -1,8 +1,10 @@
 import { useDividendos } from "@/hooks/useDividendos";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { RendaPorFundoChart } from "@/components/charts/RendaPorFundoChart";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 export function DividendosView() {
+  useRegistrarTour("carteira-dividendos");
   const { dividendos, isLoading, isError } = useDividendos();
 
   if (isLoading) return <p className="text-muted-foreground">Carregando dividendos…</p>;
@@ -37,7 +39,7 @@ export function DividendosView() {
       <>
       <section>
         <h2 className="mb-2 text-sm font-semibold text-foreground">Composição da renda</h2>
-        <div className="rounded-2xl border border-border bg-card p-3">
+        <div data-tour="dividendos-grafico" className="rounded-2xl border border-border bg-card p-3">
           <RendaPorFundoChart porFundo={dividendos.por_fundo} />
         </div>
       </section>

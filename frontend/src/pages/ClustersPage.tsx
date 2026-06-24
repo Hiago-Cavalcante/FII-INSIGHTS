@@ -3,6 +3,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
 import { Cpu } from "lucide-react";
 import { useClusters } from "@/hooks/useClusters";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 const cardBase =
   "relative w-full rounded-xl border border-border p-6 shadow-sm bg-card";
@@ -19,6 +20,7 @@ function fmtPct(v: number | null): string {
 }
 
 export function ClustersPage() {
+  useRegistrarTour("analise-clusters");
   const { clusters, isLoading, isError } = useClusters();
 
   if (isError && !isLoading) return <ErrorState message="Não foi possível carregar os clusters." />;
@@ -65,7 +67,7 @@ export function ClustersPage() {
         Clusters identificados
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div data-tour="clusters-grupos" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-48 w-full rounded-lg" />

@@ -4,6 +4,7 @@ import { ClasseBadge } from "@/components/ui/ClasseBadge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 import type { ClasseRebal, PrecoTeto } from "@/api/endpoints/recomendacoes";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 const pct = (v: number | null | undefined): string =>
   v == null ? "—" : `${(v * 100).toFixed(1).replace(".", ",")}%`;
@@ -108,6 +109,7 @@ function PrecoTetoCard({ p }: { p: PrecoTeto }) {
 }
 
 export function RecomendacoesView() {
+  useRegistrarTour("carteira-recomendacoes");
   const {
     recomendacoes,
     isLoading,
@@ -144,7 +146,7 @@ export function RecomendacoesView() {
   return (
     <div className="flex flex-col gap-4">
       {/* Rebalanceamento */}
-      <section className="flex flex-col gap-3">
+      <section data-tour="recomendacoes-rebalance" className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground">Rebalanceamento por classe</h2>
         </div>
@@ -160,7 +162,7 @@ export function RecomendacoesView() {
       </section>
 
       {/* Preço-teto */}
-      <section className="flex flex-col gap-3">
+      <section data-tour="recomendacoes-precoteto" className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-foreground">Preço-teto (método Bazin)</h2>
         <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3">
           <PercentInput label="Yield-alvo FII" fracao={yieldFii} onChange={setYieldFii} />

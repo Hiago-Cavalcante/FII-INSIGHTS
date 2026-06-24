@@ -6,8 +6,10 @@ import { useAuthStore } from "@/stores/authStore";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
 import { IndiceTours } from "@/components/ui/IndiceTours";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 export function InicioPage() {
+  useRegistrarTour("inicio");
   const { resumo } = useCarteira();
   const { topFiis } = useDashboard();
   const { dividendos } = useDividendos();
@@ -22,6 +24,7 @@ export function InicioPage() {
 
       <Link
         to="/carteira"
+        data-tour="inicio-patrimonio"
         className="glass rounded-2xl p-4"
       >
         <p className="text-sm text-muted-foreground">Patrimônio investido</p>
@@ -35,7 +38,7 @@ export function InicioPage() {
         </p>
       </Link>
 
-      <Link to="/carteira" className="rounded-2xl border border-border bg-card p-4">
+      <Link to="/carteira" data-tour="inicio-renda" className="rounded-2xl border border-border bg-card p-4">
         <p className="text-sm text-muted-foreground">Renda mensal estimada</p>
         <MoneyValue
           valor={dividendos?.renda_mensal ?? "0.00"}
@@ -44,7 +47,7 @@ export function InicioPage() {
         <p className="mt-1 text-xs text-muted-foreground">média dos últimos 12 meses</p>
       </Link>
 
-      <section>
+      <section data-tour="inicio-destaques">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground">Destaques para você</h2>
           <Link to="/analise" className="text-xs font-medium text-primary">

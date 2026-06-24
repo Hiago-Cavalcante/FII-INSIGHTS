@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { indiceMelhor, type Direcao } from "@/lib/comparador";
 import { cn } from "@/lib/utils";
 import type { RankingItem } from "@/types/ranking";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 const MAX_FUNDOS = 4;
 
@@ -36,6 +37,7 @@ const METRICAS: Metrica[] = [
 ];
 
 export function ComparadorPage() {
+  useRegistrarTour("analise-comparar");
   const tipo = usePerfilStore((s) => s.tipo);
   const { data, isLoading, isError } = useQuery({
     queryKey: ["ranking", tipo],
@@ -77,7 +79,7 @@ export function ComparadorPage() {
   return (
     <div className="flex flex-col gap-4">
       {/* Seleção */}
-      <div className="flex flex-col gap-2">
+      <div data-tour="comparar-selecao" className="flex flex-col gap-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input

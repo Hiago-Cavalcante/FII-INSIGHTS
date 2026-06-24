@@ -11,6 +11,7 @@ import {
   type PaginationState,
 } from "@tanstack/react-table";
 import { useRanking } from "@/hooks/useRanking";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
 import { ClasseBadge } from "@/components/ui/ClasseBadge";
 import {
@@ -182,7 +183,7 @@ const columns = [
     cell: ({ getValue }) => {
       const v = getValue();
       return (
-        <span className={cn("font-bold tabular-nums text-sm", scoreColor(v))}>
+        <span data-tour="ranking-score" className={cn("font-bold tabular-nums text-sm", scoreColor(v))}>
           {v.toFixed(1)}
         </span>
       );
@@ -247,6 +248,7 @@ const columns = [
 // ---------------------------------------------------------------------------
 
 export function RankingPage() {
+  useRegistrarTour("analise-ranking");
   const { fundos, filtro, setFiltro, busca, setBusca, isLoading, isError } = useRanking();
 
   const [sorting, setSorting] = useState<SortingState>([

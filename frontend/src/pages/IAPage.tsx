@@ -6,6 +6,7 @@ import { ClasseBadge } from "@/components/ui/ClasseBadge";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
 import { cn } from "@/lib/utils";
 import type { RankingItem } from "@/types/ranking";
+import { useRegistrarTour } from "@/hooks/useRegistrarTour";
 
 type Nivel = "iniciante" | "analitico";
 
@@ -17,6 +18,7 @@ const SUGESTOES = [
 ];
 
 export function IAPage() {
+  useRegistrarTour("ia");
   const { fundos } = useRanking();
   const assistente = useAssistente();
 
@@ -155,6 +157,7 @@ export function IAPage() {
             className="flex gap-2"
           >
             <input
+              data-tour="ia-input"
               type="text"
               value={pergunta}
               onChange={(e) => setPergunta(e.target.value)}
