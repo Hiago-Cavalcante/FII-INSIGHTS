@@ -22,7 +22,7 @@ export function FiiCard({ ticker, nome, segmento, score, classificacao }: Props)
     <div
       className={cn(
         "relative w-full rounded-lg border p-5 text-left shadow-sm transition-shadow hover:shadow-md",
-        "bg-white dark:bg-[#090E1A]",
+        "bg-card",
         "border-gray-200 dark:border-gray-800"
       )}
     >
@@ -33,7 +33,7 @@ export function FiiCard({ ticker, nome, segmento, score, classificacao }: Props)
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">{nome}</p>
           {segmento && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{segmento}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">{segmento}</p>
           )}
         </div>
         <ClassificacaoBadge classificacao={classificacao} className="shrink-0 mt-0.5" />
@@ -42,7 +42,7 @@ export function FiiCard({ ticker, nome, segmento, score, classificacao }: Props)
         <span className={cn("text-3xl font-semibold tabular-nums", scoreColors[classificacao])}>
           {score.toFixed(1)}
         </span>
-        <span className="text-sm text-gray-400 dark:text-gray-500">/ 100</span>
+        <span className="text-sm text-gray-400 dark:text-gray-400">/ 100</span>
       </div>
     </div>
   );

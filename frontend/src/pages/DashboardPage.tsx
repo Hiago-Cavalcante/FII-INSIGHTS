@@ -29,7 +29,7 @@ function scoreColor(score: number) {
 }
 
 const cardBase =
-  "relative w-full rounded-lg border p-6 shadow-sm bg-white dark:bg-[#090E1A] border-gray-200 dark:border-gray-800";
+  "relative w-full rounded-lg border p-6 shadow-sm bg-card border-gray-200 dark:border-gray-800";
 
 export function DashboardPage() {
   const { scoreMedio, totalFiis, topFiis, distribuicao, isLoading, isError } = useDashboard();

@@ -113,7 +113,7 @@ const columns = [
         aria-label={`Detalhes de ${row.original.ticker}`}
         aria-expanded={row.getIsExpanded()}
         onClick={row.getToggleExpandedHandler()}
-        className="flex items-center justify-center rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800"
+        className="flex items-center justify-center rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
       >
         <ChevronDown
           className={cn(
@@ -135,7 +135,7 @@ const columns = [
       const sortedRows = table.getSortedRowModel().rows;
       const pos = sortedRows.indexOf(row) + 1;
       return (
-        <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
+        <span className="text-xs text-gray-400 dark:text-gray-400 tabular-nums">
           {pos}
         </span>
       );
@@ -151,7 +151,7 @@ const columns = [
         <p className="font-mono font-semibold text-sm text-gray-900 dark:text-gray-50">
           {row.original.ticker}
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[120px]">
+        <p className="text-xs text-gray-400 dark:text-gray-400 truncate max-w-[120px]">
           {row.original.nome}
         </p>
       </div>
@@ -402,7 +402,7 @@ export function RankingPage() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="text-center py-16 text-gray-400 dark:text-gray-500"
+                  className="text-center py-16 text-gray-400 dark:text-gray-400"
                 >
                   Nenhum fundo encontrado para esta classificação.
                 </TableCell>

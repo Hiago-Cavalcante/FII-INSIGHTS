@@ -53,7 +53,7 @@ export function ClustersPage() {
               { label: "Frequência", value: "Manual" },
             ].map(({ label, value }) => (
               <div key={label}>
-                <p className="text-gray-400 dark:text-gray-500">{label}</p>
+                <p className="text-gray-400 dark:text-gray-400">{label}</p>
                 <p className="font-medium text-gray-900 dark:text-gray-50">{value}</p>
               </div>
             ))}

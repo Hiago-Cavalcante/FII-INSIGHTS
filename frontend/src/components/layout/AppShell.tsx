@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-gradient min-h-screen text-foreground">
-      <main className="mx-auto w-full max-w-md px-4 pb-20 pt-4">{children}</main>
+      <header className="sticky top-0 z-30 mx-auto flex w-full max-w-md items-center justify-between px-4 py-2">
+        <span className="text-sm font-bold tracking-tight text-foreground/80">
+          FII <span className="text-primary">Insights</span>
+        </span>
+        <ThemeToggle />
+      </header>
+      <main className="mx-auto w-full max-w-md px-4 pb-20 pt-1">{children}</main>
       <BottomNav />
     </div>
   );
