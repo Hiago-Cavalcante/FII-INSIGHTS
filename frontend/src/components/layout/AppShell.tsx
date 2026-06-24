@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { BotaoAjuda } from "@/components/ui/BotaoAjuda";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -9,7 +10,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <span className="text-sm font-bold tracking-tight text-foreground/80">
           FII <span className="text-primary">Insights</span>
         </span>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <BotaoAjuda />
+          <ThemeToggle />
+        </div>
       </header>
       <main className="mx-auto w-full max-w-md px-4 pb-20 pt-1">{children}</main>
       <BottomNav />
