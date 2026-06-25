@@ -73,6 +73,18 @@ body {
   overscroll-behavior: none;
 }
 
+/* O Safari iOS dá auto-zoom ao focar campos com font-size < 16px. Em telas de
+   toque, garante 16px nos campos de texto, inclusive os que herdam text-sm do
+   container. A cadeia :not(...) eleva a especificidade acima de .text-sm (sem
+   !important); desktop (pointer fino) mantém os tamanhos de design. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+  textarea:not([disabled]),
+  select:not([disabled]) {
+    font-size: 16px;
+  }
+}
+
 /* Liquid glass — moldura translúcida + gradiente de fundo (a leitura fica nos cards sólidos) */
 .app-gradient {
   background:
