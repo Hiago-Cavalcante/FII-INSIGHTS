@@ -40,3 +40,28 @@ def test_explicar_ticker_inexistente(client_carteira):
         assert r.status_code == 404
     finally:
         app.dependency_overrides.pop(get_llm, None)
+
+
+def test_chat_retorna_resposta(client_carteira):
+    client, novo_usuario = client_carteira
+    app.dependency_overrides[get_llm] = lambda: FakeLLM("oi")
+    try:
+        h = novo_usuario("chat@b.com")
+        r = client.post(
+            "/api/v1/assistente/chat",
+            json={"mensagem": "O que é DY?", "historico": [], "nivel": "iniciante"},
+            headers=h,
+        )
+        assert r.status_code == 200
+        assert r.json()["resposta"] == "oi"
+    finally:
+        app.dependency_overrides.pop(get_llm, None)
+
+
+def test_chat_exige_auth(client_carteira):
+    client, _ = client_carteira
+    r = client.post(
+        "/api/v1/assistente/chat",
+        json={"mensagem": "oi", "historico": [], "nivel": "iniciante"},
+    )
+    assert r.status_code in (401, 403)
