@@ -1,10 +1,21 @@
 import { apiClient } from "@/api/client";
-import type { components } from "@/types/api";
 
-export type ExplicarBody = components["schemas"]["ExplicarIn"];
-export type Explicacao = components["schemas"]["ExplicarOut"];
+export interface TrocaHistorico {
+  papel: "usuario" | "assistente";
+  texto: string;
+}
 
-export async function explicar(body: ExplicarBody): Promise<Explicacao> {
-  const { data } = await apiClient.post<Explicacao>("/api/v1/assistente/explicar", body);
+export interface ChatIn {
+  mensagem: string;
+  historico: TrocaHistorico[];
+  nivel: "iniciante" | "analitico";
+}
+
+export interface ChatOut {
+  resposta: string;
+}
+
+export async function chat(body: ChatIn): Promise<ChatOut> {
+  const { data } = await apiClient.post<ChatOut>("/api/v1/assistente/chat", body);
   return data;
 }
