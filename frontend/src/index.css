@@ -25,6 +25,10 @@
   --input: oklch(0.9 0.005 120);
   --ring: oklch(0.52 0.10 180);
   --radius: 0.875rem;
+  /* Insets do dispositivo (notch/Dynamic Island, barra de gestos). Fallback 0
+     em telas sem safe-area. Consumidos por header e bottom-nav. */
+  --sa-top: env(safe-area-inset-top, 0px);
+  --sa-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .dark {
