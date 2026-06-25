@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, fireEvent } from "@testing-library/react";
 import { ConviteInstalarPwa } from "./ConviteInstalarPwa";
 
 const DELAY_MS = 1500;
@@ -35,7 +35,7 @@ describe("ConviteInstalarPwa", () => {
     expect(screen.getByRole("button", { name: /instalar/i })).toBeInTheDocument();
   });
 
-  it("mostra instruções de iOS quando não há prompt nativo", async () => {
+  it("mostra a variante iOS com o botão 'Como instalar' quando não há prompt nativo", async () => {
     definirUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)");
     render(<ConviteInstalarPwa />);
 
@@ -43,7 +43,19 @@ describe("ConviteInstalarPwa", () => {
       vi.advanceTimersByTime(DELAY_MS);
     });
 
-    expect(screen.getByRole("dialog")).toHaveTextContent(/adicionar à tela de início/i);
+    expect(screen.getByRole("button", { name: /como instalar/i })).toBeInTheDocument();
+  });
+
+  it("abre o guia de instalação no iOS ao tocar em Como instalar", async () => {
+    definirUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)");
+    render(<ConviteInstalarPwa />);
+
+    await act(async () => {
+      vi.advanceTimersByTime(DELAY_MS);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /como instalar/i }));
+    expect(screen.getByText("Adicionar à Tela de Início")).toBeInTheDocument();
   });
 
   it("fica oculto quando já foi dispensado recentemente", async () => {

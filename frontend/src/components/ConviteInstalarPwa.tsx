@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Download, Share, X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { decidirConviteInstalar, ehIOS, type VarianteConvite } from "@/lib/pwa";
+import { GuiaInstalacaoIOS } from "./GuiaInstalacaoIOS";
 
 const CHAVE_DISPENSA = "pwa-convite-dispensado";
 const DELAY_MS = 1500;
@@ -36,6 +37,7 @@ export function ConviteInstalarPwa() {
   // `agora` é capturado quando o delay expira (no effect), nunca no render —
   // Date.now() no render viola a regra de pureza do React.
   const [agora, setAgora] = useState<number | null>(null);
+  const [guiaAberto, setGuiaAberto] = useState(false);
 
   useEffect(() => {
     function onBeforeInstall(e: Event) {
@@ -82,52 +84,48 @@ export function ConviteInstalarPwa() {
   if (variante === "oculto") return null;
 
   return (
-    <div
-      role="dialog"
-      aria-label="Instalar o FII Insights"
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md p-3"
-    >
-      <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-lg">
-        <img src="/icons/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-xl" />
-        <div className="flex-1 text-sm">
-          <p className="font-semibold text-foreground">Instale o FII Insights</p>
-          {variante === "android" ? (
+    <>
+      <div
+        role="dialog"
+        aria-label="Instalar o FII Insights"
+        className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md p-3"
+      >
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-lg">
+          <img src="/icons/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-xl" />
+          <div className="flex-1 text-sm">
+            <p className="font-semibold text-foreground">Instale o FII Insights</p>
             <p className="text-xs text-muted-foreground">
               Adicione à tela inicial para abrir como um app.
             </p>
+          </div>
+          {variante === "android" ? (
+            <button
+              type="button"
+              onClick={instalar}
+              className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Download className="h-4 w-4" aria-hidden /> Instalar
+            </button>
           ) : (
-            <p className="text-xs text-muted-foreground">
-              Toque em <Share className="inline h-3 w-3" aria-hidden /> Compartilhar e depois
-              “Adicionar à Tela de Início”.
-            </p>
+            <button
+              type="button"
+              onClick={() => setGuiaAberto(true)}
+              className="shrink-0 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Como instalar
+            </button>
           )}
-        </div>
-        {variante === "android" ? (
-          <button
-            type="button"
-            onClick={instalar}
-            className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            <Download className="h-4 w-4" aria-hidden /> Instalar
-          </button>
-        ) : (
           <button
             type="button"
             onClick={dispensar}
-            className="shrink-0 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            aria-label="Dispensar"
+            className="shrink-0 rounded-lg p-1 text-muted-foreground"
           >
-            Entendi
+            <X className="h-4 w-4" />
           </button>
-        )}
-        <button
-          type="button"
-          onClick={dispensar}
-          aria-label="Dispensar"
-          className="shrink-0 rounded-lg p-1 text-muted-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        </div>
       </div>
-    </div>
+      <GuiaInstalacaoIOS aberto={guiaAberto} onFechar={() => setGuiaAberto(false)} />
+    </>
   );
 }
