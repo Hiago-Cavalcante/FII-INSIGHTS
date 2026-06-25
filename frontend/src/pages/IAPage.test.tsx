@@ -29,4 +29,15 @@ describe("IAPage (chat)", () => {
     });
     expect(screen.getByText("O que é DY?")).toBeInTheDocument();
   });
+
+  it("rola para o input ao focar (teclado nao cobre)", () => {
+    const scrollSpy = vi.fn();
+    // jsdom nao implementa scrollIntoView; instala um mock no protótipo.
+    Element.prototype.scrollIntoView = scrollSpy;
+    render(<IAPage />);
+    // Descarta a chamada do efeito de montagem para isolar o comportamento do focus.
+    scrollSpy.mockClear();
+    fireEvent.focus(screen.getByPlaceholderText(/pergunte sobre fiis/i));
+    expect(scrollSpy).toHaveBeenCalled();
+  });
 });

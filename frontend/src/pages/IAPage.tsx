@@ -100,7 +100,7 @@ export function IAPage() {
       </div>
 
       {/* Mensagens: ocupa o espaço restante e rola por conta própria */}
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain py-2">
         {mensagens.length === 0 && (
           <div className="flex flex-wrap gap-2">
             {SUGESTOES.map((s) => (
@@ -140,6 +140,10 @@ export function IAPage() {
             type="text"
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
+            onFocus={() => {
+              // Mantém o input acima do teclado quando o iOS encolhe a viewport.
+              fimRef.current?.scrollIntoView?.({ behavior: "smooth", block: "end" });
+            }}
             placeholder="Pergunte sobre FIIs…"
             className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring"
           />

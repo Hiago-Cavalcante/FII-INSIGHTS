@@ -59,11 +59,18 @@
   border-color: var(--border);
 }
 
+html {
+  background-color: var(--background);
+  /* Sem elástico de overscroll revelando o fundo nas bordas (iOS). */
+  overscroll-behavior: none;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: "Geist Variable", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
 /* Liquid glass — moldura translúcida + gradiente de fundo (a leitura fica nos cards sólidos) */
