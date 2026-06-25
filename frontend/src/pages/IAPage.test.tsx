@@ -1,25 +1,32 @@
-import { it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { IAPage } from "./IAPage";
 
-vi.mock("@/hooks/useRanking", () => ({
-  useRanking: () => ({
-    fundos: [{ ticker: "HGLG11", nome: "CSHG Log", classe: "FII", score: 90, classificacao: "Excelente" }],
-    isLoading: false,
-    isError: false,
-    filtro: "Todas",
-    setFiltro: () => {},
-    busca: "",
-    setBusca: () => {},
-  }),
-}));
-
+const mutateMock = vi.fn();
 vi.mock("@/hooks/useAssistente", () => ({
-  useAssistente: () => ({ mutate: vi.fn(), reset: vi.fn(), data: undefined, isPending: false, isError: false }),
+  useAssistente: () => ({ mutate: mutateMock, isPending: false }),
 }));
 
-it("renderiza o assistente com seletor de fundo ancorado nos dados", () => {
-  render(<IAPage />);
-  expect(screen.getByPlaceholderText(/escolha um fundo/i)).toBeInTheDocument();
-  expect(screen.getByText(/ancorado nos dados/i)).toBeInTheDocument();
+beforeEach(() => mutateMock.mockReset());
+
+describe("IAPage (chat)", () => {
+  it("mostra o aviso de beta", () => {
+    render(<IAPage />);
+    expect(screen.getByText(/beta/i)).toBeInTheDocument();
+  });
+
+  it("envia a pergunta chamando o assistente com historico e nivel", () => {
+    render(<IAPage />);
+    fireEvent.change(screen.getByPlaceholderText(/pergunte sobre fiis/i), {
+      target: { value: "O que é DY?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /enviar/i }));
+    expect(mutateMock).toHaveBeenCalledTimes(1);
+    expect(mutateMock.mock.calls[0][0]).toEqual({
+      mensagem: "O que é DY?",
+      historico: [],
+      nivel: "iniciante",
+    });
+    expect(screen.getByText("O que é DY?")).toBeInTheDocument();
+  });
 });
