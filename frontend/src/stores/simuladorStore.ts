@@ -2,10 +2,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface SimuladorState {
-  aporteMensal: number;
+  aporteMensal: number | null;
   meses: number;
   rendaAlvo: number | null;
-  setAporte: (v: number) => void;
+  setAporte: (v: number | null) => void;
   setMeses: (v: number) => void;
   setRendaAlvo: (v: number | null) => void;
 }

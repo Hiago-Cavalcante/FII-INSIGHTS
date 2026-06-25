@@ -27,7 +27,7 @@ export function SimuladorView() {
   const capitalInicial = capitalOverride ?? capitalDefault;
   const taxaMensal = taxaOverride ?? taxaDefault;
 
-  const r = projetarRenda({ capitalInicial, aporteMensal, taxaMensal, meses, rendaAlvo });
+  const r = projetarRenda({ capitalInicial, aporteMensal: aporteMensal ?? 0, taxaMensal, meses, rendaAlvo });
   const anos = Math.round(meses / 12);
 
   return (
@@ -58,8 +58,8 @@ export function SimuladorView() {
             type="number"
             min="0"
             step="50"
-            value={aporteMensal}
-            onChange={(e) => setAporte(Number(e.target.value))}
+            value={aporteMensal ?? ""}
+            onChange={(e) => setAporte(e.target.value === "" ? null : Number(e.target.value))}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
         </label>

@@ -24,4 +24,14 @@ describe("SimuladorView", () => {
     fireEvent.change(aporte, { target: { value: "2000" } });
     expect(useSimuladorStore.getState().aporteMensal).toBe(2000);
   });
+
+  it("permite esvaziar o campo de aporte (não trava em 0)", () => {
+    useSimuladorStore.setState({ aporteMensal: 2000 });
+    render(<SimuladorView />);
+    const aporte = screen.getByLabelText("Aporte mensal");
+    fireEvent.change(aporte, { target: { value: "" } });
+    // input numérico vazio reporta value null; o store guarda null (não 0).
+    expect(aporte).toHaveValue(null);
+    expect(useSimuladorStore.getState().aporteMensal).toBeNull();
+  });
 });

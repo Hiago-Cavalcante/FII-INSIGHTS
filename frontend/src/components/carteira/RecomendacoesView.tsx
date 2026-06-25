@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRecomendacoes } from "@/hooks/useRecomendacoes";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClasseBadge } from "@/components/ui/ClasseBadge";
@@ -27,6 +28,9 @@ function PercentInput({
   onChange: (f: number) => void;
   step?: number;
 }) {
+  // draft local em string: permite esvaziar o campo enquanto edita; o valor só
+  // é propagado ao pai quando é um número válido (sem travar em zero/NaN).
+  const [draft, setDraft] = useState(() => String(Number((fracao * 100).toFixed(1))));
   return (
     <label className="flex items-center justify-between gap-2 text-sm">
       <span className="text-muted-foreground">{label}</span>
@@ -36,8 +40,9 @@ function PercentInput({
           inputMode="decimal"
           min={0}
           step={step}
-          value={Number((fracao * 100).toFixed(1))}
+          value={draft}
           onChange={(e) => {
+            setDraft(e.target.value);
             const v = parseFloat(e.target.value);
             if (!Number.isNaN(v)) onChange(v / 100);
           }}
