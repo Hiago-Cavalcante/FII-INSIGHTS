@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.repositories.fundo_repository import FundoRepository
 from app.repositories.indicador_repository import IndicadorRepository
 from app.services.assistente_llm import AssistenteLLM
+from app.services.glossario import BLURB_PLATAFORMA, texto_glossario
 from app.services.scoring_service import (
     PESOS_DEFAULT,
     ContribIndicador,
@@ -135,9 +136,6 @@ def _formatar_contexto(ctx: ContextoFundo) -> str:
             f"contribui {i['contribuicao']:.1f} pontos."
         )
     return "\n".join(linhas)
-
-
-from app.services.glossario import BLURB_PLATAFORMA, texto_glossario
 
 
 def montar_contexto_chat(db: Session, mensagem: str, max_fundos: int = 2) -> str:
