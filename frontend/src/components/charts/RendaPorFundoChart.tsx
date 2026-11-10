@@ -1,3 +1,4 @@
+import { formatMoeda } from "@/lib/formato";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import type { FundoRenda } from "@/api/endpoints/dividendos";
 
@@ -32,7 +33,7 @@ export function RendaPorFundoChart({ porFundo }: { porFundo: FundoRenda[] }) {
           labelStyle={{ color: "var(--foreground)" }}
           itemStyle={{ color: "var(--foreground)" }}
           formatter={(v: number | string | readonly (number | string)[]) =>
-            `R$ ${Number(v).toFixed(2)}/mês`
+            `${formatMoeda(Number(v))}/mês`
           }
         />
         <Bar

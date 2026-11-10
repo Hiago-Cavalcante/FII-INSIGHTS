@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { X, Search } from "lucide-react";
-import { getRanking } from "@/api/endpoints/ranking";
-import { usePerfilStore } from "@/stores/perfilStore";
+import { useRankingDados } from "@/hooks/useRanking";
 import { ClasseBadge } from "@/components/ui/ClasseBadge";
 import { ClassificacaoBadge } from "@/components/ClassificacaoBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,11 +36,7 @@ const METRICAS: Metrica[] = [
 
 export function ComparadorPage() {
   useRegistrarTour("analise-comparar");
-  const tipo = usePerfilStore((s) => s.tipo);
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["ranking", tipo],
-    queryFn: () => getRanking(tipo),
-  });
+  const { data, isLoading, isError } = useRankingDados();
 
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [busca, setBusca] = useState("");
@@ -81,25 +75,37 @@ export function ComparadorPage() {
       {/* Seleção */}
       <div data-tour="comparar-selecao" className="flex flex-col gap-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search aria-hidden className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            type="text"
+            type="search"
+            aria-label="Buscar fundo para comparar"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             disabled={selecionados.length >= MAX_FUNDOS}
             placeholder={
               selecionados.length >= MAX_FUNDOS ? `Máximo de ${MAX_FUNDOS} fundos` : "Buscar ticker ou nome…"
             }
-            className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring disabled:opacity-50"
+            className="min-h-11 w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-ring disabled:opacity-50"
           />
-          {sugestoes.length > 0 && (
-            <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+          {busca.trim() !== "" && (
+            <ul
+              role="listbox"
+              aria-label="Fundos encontrados"
+              className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-border bg-card shadow-lg"
+            >
+              {sugestoes.length === 0 && (
+                <li className="px-3 py-3 text-sm text-muted-foreground">
+                  Nenhum fundo encontrado para “{busca.trim()}”.
+                </li>
+              )}
               {sugestoes.map((f) => (
                 <li key={f.ticker}>
                   <button
                     type="button"
+                    role="option"
+                    aria-selected={false}
                     onClick={() => adicionar(f.ticker)}
-                    className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted"
+                    className="flex min-h-11 w-full items-center justify-between px-3 text-left text-sm hover:bg-muted"
                   >
                     <span className="font-mono font-semibold text-foreground">{f.ticker}</span>
                     <span className="truncate pl-2 text-xs text-muted-foreground">{f.nome}</span>
@@ -112,15 +118,16 @@ export function ComparadorPage() {
         {selecionadosFundos.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {selecionadosFundos.map((f) => (
-              <span
+              <button
                 key={f.ticker}
-                className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
+                type="button"
+                onClick={() => remover(f.ticker)}
+                aria-label={`Remover ${f.ticker}`}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary/10 px-4 text-sm font-medium text-primary hover:bg-primary/15"
               >
                 {f.ticker}
-                <button type="button" onClick={() => remover(f.ticker)} aria-label={`Remover ${f.ticker}`}>
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </span>
+                <X aria-hidden className="h-3.5 w-3.5" />
+              </button>
             ))}
           </div>
         )}

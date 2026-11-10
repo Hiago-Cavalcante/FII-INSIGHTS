@@ -33,7 +33,7 @@ export function IndiceTours() {
         type="button"
         onClick={() => setAberto((a) => !a)}
         aria-expanded={aberto}
-        className="flex w-full items-center justify-between gap-2 text-left"
+        className="flex min-h-11 w-full items-center justify-between gap-2 text-left"
       >
         <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
           💡 Aprenda enquanto investe

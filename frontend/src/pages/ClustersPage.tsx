@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Cpu } from "lucide-react";
 import { useClusters } from "@/hooks/useClusters";
 import { useRegistrarTour } from "@/hooks/useRegistrarTour";
+import { formatPercent } from "@/lib/formato";
 
 const cardBase =
   "relative w-full rounded-xl border border-border p-6 shadow-sm bg-card";
@@ -16,8 +17,10 @@ const CORES_PERFIL: Record<string, { card: string; dot: string }> = {
 
 // O endpoint /clusters retorna frações cruas (ao contrário de /ranking); ×100 → percentual.
 function fmtPct(v: number | null): string {
-  return v !== null ? `${(v * 100).toFixed(1)}%` : "—";
+  return v !== null ? formatPercent(v * 100) : "—";
 }
+
+const fmtPvp = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export function ClustersPage() {
   useRegistrarTour("analise-clusters");
@@ -25,10 +28,13 @@ export function ClustersPage() {
 
   if (isError && !isLoading) return <ErrorState message="Não foi possível carregar os clusters." />;
 
+  // Amostra real = fundos efetivamente agrupados (o K-Means usa todos os elegíveis, FII e FIAGRO).
+  const totalFundos = clusters.reduce((soma, c) => soma + c.num_fiis, 0);
+
   return (
     <div>
       <p className="mb-4 text-sm text-muted-foreground">
-        Segmentação automática de FIIs por perfil de risco e retorno (K-Means)
+        Segmentação automática de FIIs e FIAGROs por perfil de risco e retorno (K-Means)
       </p>
 
       <div className="mb-8">
@@ -38,32 +44,32 @@ export function ClustersPage() {
               <Cpu className="h-5 w-5 text-blue-500" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
+              <p className="text-sm font-medium text-foreground">
                 Algoritmo K-Means · k = 4 clusters
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Método do cotovelo + Silhouette Score para validação
+              <p className="text-xs text-muted-foreground">
+                k fixado em 4 para facilitar a leitura; cotovelo e silhueta calculados como apoio
               </p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4 text-sm">
             {[
-              { label: "Features", value: "5 indicadores" },
+              { label: "Variáveis", value: "4 indicadores" },
               { label: "Padronização", value: "StandardScaler" },
               { label: "Clusters", value: "k = 4" },
-              { label: "Amostra", value: "Top 50 FIIs" },
-              { label: "Frequência", value: "Manual" },
+              { label: "Amostra", value: isLoading ? "…" : `${totalFundos} fundos (FII e FIAGRO)` },
+              { label: "Atualização", value: "Manual" },
             ].map(({ label, value }) => (
-              <div key={label}>
-                <p className="text-gray-400 dark:text-gray-400">{label}</p>
-                <p className="font-medium text-gray-900 dark:text-gray-50">{value}</p>
+              <div key={label} className="min-w-0">
+                <p className="text-muted-foreground">{label}</p>
+                <p className="break-words font-medium text-foreground">{value}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+      <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
         Clusters identificados
       </h2>
 
@@ -78,22 +84,20 @@ export function ClustersPage() {
                 <div key={c.id} className={cn("relative w-full rounded-lg border p-6 shadow-sm", cor.card)}>
                   <div className="flex items-center gap-2 mb-1">
                     <span className={cn("size-2 rounded-full", cor.dot)} />
-                    <p className="font-semibold text-gray-900 dark:text-gray-50">{c.nome_interpretado}</p>
+                    <p className="font-semibold text-foreground">{c.nome_interpretado}</p>
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                    Perfil {c.perfil_risco} · {c.num_fiis} FIIs
+                  <span className="text-xs text-muted-foreground">
+                    Perfil {c.perfil_risco} · {c.num_fiis} {c.num_fiis === 1 ? "fundo" : "fundos"}
                   </span>
-                  {c.descricao && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 my-3">{c.descricao}</p>
-                  )}
-                  <div className="grid grid-cols-3 gap-2 text-sm mb-3">
-                    <div><p className="text-gray-400 text-xs">DY médio</p><p className="font-medium">{fmtPct(c.dy_medio)}</p></div>
-                    <div><p className="text-gray-400 text-xs">Volatilidade</p><p className="font-medium">{fmtPct(c.volatilidade_media)}</p></div>
-                    <div><p className="text-gray-400 text-xs">P/VP médio</p><p className="font-medium">{c.p_vp_medio !== null ? c.p_vp_medio.toFixed(2) : "—"}</p></div>
+                  {/* A descrição textual repetia as três médias abaixo (e em formato decimal inglês). */}
+                  <div className="my-3 grid grid-cols-3 gap-2 text-sm">
+                    <div><p className="text-xs text-muted-foreground">DY médio</p><p className="font-medium tabular-nums">{fmtPct(c.dy_medio)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Volatilidade</p><p className="font-medium tabular-nums">{fmtPct(c.volatilidade_media)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">P/VP médio</p><p className="font-medium tabular-nums">{c.p_vp_medio !== null ? fmtPvp.format(c.p_vp_medio) : "—"}</p></div>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {c.tickers.map((t) => (
-                      <span key={t} className="font-mono text-xs bg-white/60 dark:bg-gray-800/60 border border-current/10 rounded px-1.5 py-0.5">{t}</span>
+                      <span key={t} className="rounded border border-border/60 bg-card/60 px-1.5 py-0.5 font-mono text-xs text-foreground">{t}</span>
                     ))}
                   </div>
                 </div>

@@ -33,7 +33,7 @@ export function GuiaInstalacaoIOS({ aberto, onFechar }: Props) {
     <div
       role="dialog"
       aria-label="Como instalar no iPhone"
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-3"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-3 pb-[calc(0.75rem+var(--sa-bottom))]"
       onClick={onFechar}
     >
       <div
@@ -46,7 +46,7 @@ export function GuiaInstalacaoIOS({ aberto, onFechar }: Props) {
             type="button"
             onClick={onFechar}
             aria-label="Fechar"
-            className="p-1 text-muted-foreground"
+            className="-m-2 grid h-11 w-11 place-items-center text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>

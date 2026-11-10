@@ -29,11 +29,12 @@ export function SimuladorView() {
 
   const r = projetarRenda({ capitalInicial, aporteMensal: aporteMensal ?? 0, taxaMensal, meses, rendaAlvo });
   const anos = Math.round(meses / 12);
+  const rotuloAnos = `${anos} ${anos === 1 ? "ano" : "anos"}`;
 
   return (
     <div className="flex flex-col gap-4">
       <section className="glass rounded-2xl p-4">
-        <p className="text-sm text-muted-foreground">Renda mensal projetada em {anos} anos</p>
+        <p className="text-sm text-muted-foreground">Renda mensal projetada em {rotuloAnos}</p>
         <MoneyValue valor={r.rendaFinal} className="text-3xl font-extrabold text-primary" />
         <p className="mt-1 text-xs text-muted-foreground">
           patrimônio <MoneyValue valor={r.patrimonioFinal} />
@@ -60,15 +61,16 @@ export function SimuladorView() {
             step="50"
             value={aporteMensal ?? ""}
             onChange={(e) => setAporte(e.target.value === "" ? null : Number(e.target.value))}
-            className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
         </label>
 
         <label className="flex flex-col gap-1 text-sm text-foreground">
-          Horizonte: {anos} anos
+          Horizonte: {rotuloAnos}
           <input
             aria-label="Horizonte em anos"
             type="range"
+            className="h-11 w-full accent-primary"
             min="1"
             max="30"
             value={anos}
@@ -85,7 +87,7 @@ export function SimuladorView() {
             step="100"
             value={rendaAlvo ?? ""}
             onChange={(e) => setRendaAlvo(e.target.value === "" ? null : Number(e.target.value))}
-            className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
         </label>
 
@@ -98,7 +100,7 @@ export function SimuladorView() {
             step="100"
             value={capitalInicial}
             onChange={(e) => setCapitalOverride(e.target.value === "" ? null : Number(e.target.value))}
-            className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
         </label>
 
@@ -107,6 +109,7 @@ export function SimuladorView() {
           <input
             aria-label="DY mensal"
             type="range"
+            className="h-11 w-full accent-primary"
             min="1"
             max="30"
             value={Math.min(30, Math.round(taxaMensal * 1000))}

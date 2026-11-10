@@ -18,7 +18,7 @@ export function BotaoAjuda() {
       type="button"
       onClick={abrir}
       aria-label="Abrir guia desta tela"
-      className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+      className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
     >
       <HelpCircle className="h-5 w-5" />
     </button>

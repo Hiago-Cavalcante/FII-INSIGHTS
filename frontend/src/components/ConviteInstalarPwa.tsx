@@ -88,7 +88,7 @@ export function ConviteInstalarPwa() {
       <div
         role="dialog"
         aria-label="Instalar o FII Insights"
-        className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md p-3"
+        className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md p-3 pb-[calc(0.75rem+var(--sa-bottom))]"
       >
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-lg">
           <img src="/icons/icon-192.png" alt="" className="h-10 w-10 shrink-0 rounded-xl" />
@@ -119,7 +119,7 @@ export function ConviteInstalarPwa() {
             type="button"
             onClick={dispensar}
             aria-label="Dispensar"
-            className="shrink-0 rounded-lg p-1 text-muted-foreground"
+            className="-m-2 grid h-11 w-11 shrink-0 place-items-center rounded-lg text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>

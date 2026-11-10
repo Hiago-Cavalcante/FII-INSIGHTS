@@ -4,6 +4,7 @@ import { useCarteira } from "@/hooks/useCarteira";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { ClasseBadge } from "@/components/ui/ClasseBadge";
 import { useRegistrarTour } from "@/hooks/useRegistrarTour";
+import { mensagemErroApi } from "@/lib/erros";
 
 export function PosicoesView() {
   useRegistrarTour("carteira-posicoes");
@@ -12,18 +13,36 @@ export function PosicoesView() {
   const [ticker, setTicker] = useState("");
   const [quantidade, setQuantidade] = useState("");
   const [preco, setPreco] = useState("");
+  const [erroForm, setErroForm] = useState<string | null>(null);
+  const [erroAcao, setErroAcao] = useState<string | null>(null);
   const vazia = posicoes.length === 0;
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    aporte.mutate({ ticker: ticker.toUpperCase(), quantidade: Number(quantidade), preco });
-    setTicker("");
-    setQuantidade("");
-    setPreco("");
+    setErroForm(null);
+    aporte.mutate(
+      { ticker: ticker.toUpperCase(), quantidade: Number(quantidade), preco },
+      {
+        // Só limpa o formulário quando o aporte é aceito; no erro, mantém o que foi digitado.
+        onSuccess: () => {
+          setTicker("");
+          setQuantidade("");
+          setPreco("");
+        },
+        onError: (err) =>
+          setErroForm(mensagemErroApi(err, "Não foi possível adicionar o fundo. Tente novamente.")),
+      }
+    );
   }
 
+  const falhaAcao = (padrao: string) => (err: unknown) => setErroAcao(mensagemErroApi(err, padrao));
+
   function onLimpar() {
-    if (window.confirm("Limpar toda a carteira?")) limpar.mutate(posicoes.map((p) => p.id));
+    if (!window.confirm("Limpar toda a carteira?")) return;
+    setErroAcao(null);
+    limpar.mutate(posicoes.map((p) => p.id), {
+      onError: falhaAcao("Não foi possível limpar toda a carteira. Recarregue e tente de novo."),
+    });
   }
 
   if (isLoading) return <p className="text-muted-foreground">Carregando carteira…</p>;
@@ -36,6 +55,11 @@ export function PosicoesView() {
 
   return (
     <div className="flex flex-col gap-4">
+      {erroAcao && (
+        <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {erroAcao}
+        </p>
+      )}
       {resumo && !vazia && (
         <section data-tour="carteira-total" className="glass rounded-2xl p-4">
           <div className="flex items-center justify-between gap-2">
@@ -64,7 +88,12 @@ export function PosicoesView() {
           </div>
           <button
             type="button"
-            onClick={() => carregarExemplo.mutate()}
+            onClick={() => {
+              setErroAcao(null);
+              carregarExemplo.mutate(undefined, {
+                onError: falhaAcao("Não foi possível carregar a carteira de exemplo. Tente novamente."),
+              });
+            }}
             disabled={carregarExemplo.isPending}
             className="w-full rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
           >
@@ -92,7 +121,11 @@ export function PosicoesView() {
                 <button
                   aria-label={`Remover ${p.ticker}`}
                   onClick={() => {
-                    if (window.confirm(`Remover ${p.ticker} da carteira?`)) remover.mutate(p.id);
+                    if (!window.confirm(`Remover ${p.ticker} da carteira?`)) return;
+                    setErroAcao(null);
+                    remover.mutate(p.id, {
+                      onError: falhaAcao(`Não foi possível remover ${p.ticker}. Tente novamente.`),
+                    });
                   }}
                   disabled={remover.isPending}
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-destructive disabled:opacity-60"
@@ -117,7 +150,7 @@ export function PosicoesView() {
             required
             value={ticker}
             onChange={(e) => setTicker(e.target.value)}
-            className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
           <input
             aria-label="Quantidade"
@@ -127,7 +160,7 @@ export function PosicoesView() {
             required
             value={quantidade}
             onChange={(e) => setQuantidade(e.target.value)}
-            className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
           <input
             aria-label="Preço"
@@ -138,15 +171,20 @@ export function PosicoesView() {
             required
             value={preco}
             onChange={(e) => setPreco(e.target.value)}
-            className="rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
+            className="min-h-11 rounded-xl border border-input bg-background px-3 py-2.5 text-foreground"
           />
           <button
             type="submit"
             disabled={aporte.isPending}
             className="rounded-xl bg-primary py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
           >
-            Adicionar
+            {aporte.isPending ? "Adicionando…" : "Adicionar"}
           </button>
+          {erroForm && (
+            <p role="alert" className="text-sm text-destructive">
+              {erroForm}
+            </p>
+          )}
         </form>
       </details>
 
@@ -155,7 +193,7 @@ export function PosicoesView() {
           type="button"
           onClick={onLimpar}
           disabled={limpar.isPending}
-          className="rounded-xl border border-border py-2.5 text-sm font-medium text-muted-foreground disabled:opacity-60"
+          className="min-h-11 rounded-xl border border-border py-2.5 text-sm font-medium text-muted-foreground disabled:opacity-60"
         >
           {limpar.isPending ? "Limpando…" : "Limpar carteira"}
         </button>
