@@ -110,10 +110,10 @@ const PESOS_PADRAO_MODERADO: PesosForm = {
 };
 
 const SCORE_COLOR: Record<Classificacao, string> = {
-  Excelente: "text-emerald-600 dark:text-emerald-400",
-  Bom: "text-blue-600 dark:text-blue-400",
-  Regular: "text-amber-600 dark:text-amber-400",
-  Evitar: "text-red-600 dark:text-red-400",
+  Excelente: "text-emerald-700 dark:text-emerald-400",
+  Bom: "text-blue-700 dark:text-blue-400",
+  Regular: "text-amber-700 dark:text-amber-400",
+  Evitar: "text-red-700 dark:text-red-400",
 };
 
 // ---------------------------------------------------------------------------
@@ -136,6 +136,7 @@ function Secao({
       <button
         type="button"
         onClick={onToggle}
+        aria-expanded={aberta}
         className="flex w-full items-center justify-between p-4 text-sm font-medium text-foreground"
       >
         {titulo}
@@ -222,12 +223,14 @@ function PesosCustomizadosForm() {
                 </div>
                 <input
                   type="range"
+                  aria-label={`Peso de ${rotulo}`}
+                  aria-valuetext={`${field.value}%`}
                   min={0}
                   max={60}
                   step={1}
                   value={Number(field.value)}
                   onChange={(e) => field.onChange(Number(e.target.value))}
-                  className="w-full accent-primary"
+                  className="h-11 w-full accent-primary"
                 />
               </div>
             )}
@@ -322,6 +325,7 @@ export function PerfilPage() {
             <button
               key={p.tipo}
               type="button"
+              aria-pressed={sel}
               onClick={() => setTipo(p.tipo)}
               className={cn(
                 "flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors",

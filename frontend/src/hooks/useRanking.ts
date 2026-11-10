@@ -4,9 +4,12 @@ import { getRanking, simularRanking } from "@/api/endpoints/ranking";
 import { usePerfilStore } from "@/stores/perfilStore";
 import type { RankingItem } from "@/types/ranking";
 import type { Classificacao } from "@/types/domain";
+import { posicoesPorScore } from "@/lib/ranking";
 
 interface UseRankingResult {
   fundos: RankingItem[];
+  /** Posição de cada ticker no ranking geral (antes de filtro e busca). */
+  posicoes: Map<string, number>;
   isLoading: boolean;
   isError: boolean;
   filtro: Classificacao | "Todas";
@@ -15,16 +18,24 @@ interface UseRankingResult {
   setBusca: (b: string) => void;
 }
 
-export function useRanking(): UseRankingResult {
+/**
+ * Ranking completo segundo o perfil ativo — pesos personalizados têm prioridade.
+ * Fonte única para Ranking e Comparador, para o mesmo fundo nunca ter dois scores.
+ */
+export function useRankingDados() {
   const tipo = usePerfilStore((s) => s.tipo);
   const pesosCustom = usePerfilStore((s) => s.pesosCustom);
-  const [filtro, setFiltro] = useState<Classificacao | "Todas">("Todas");
-  const [busca, setBusca] = useState("");
-
-  const query = useQuery({
+  return useQuery({
     queryKey: ["ranking", pesosCustom ?? tipo],
     queryFn: () => (pesosCustom ? simularRanking(pesosCustom) : getRanking(tipo)),
   });
+}
+
+export function useRanking(): UseRankingResult {
+  const [filtro, setFiltro] = useState<Classificacao | "Todas">("Todas");
+  const [busca, setBusca] = useState("");
+
+  const query = useRankingDados();
 
   const fundos = useMemo(() => {
     const lista = query.data ?? [];
@@ -39,8 +50,11 @@ export function useRanking(): UseRankingResult {
     });
   }, [query.data, filtro, busca]);
 
+  const posicoes = useMemo(() => posicoesPorScore(query.data ?? []), [query.data]);
+
   return {
     fundos,
+    posicoes,
     isLoading: query.isLoading,
     isError: query.isError,
     filtro,

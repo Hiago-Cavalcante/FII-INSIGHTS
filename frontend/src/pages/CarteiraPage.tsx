@@ -63,7 +63,7 @@ export function CarteiraPage() {
               aria-selected={sub === s}
               onClick={() => setSub(s)}
               className={cn(
-                "shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium",
+                "min-h-11 shrink-0 whitespace-nowrap rounded-full px-4 text-sm font-medium",
                 sub === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
               )}
             >

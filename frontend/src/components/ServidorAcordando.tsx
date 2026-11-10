@@ -37,7 +37,7 @@ export function ServidorAcordando() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-0 top-0 z-50 mx-auto w-full max-w-md px-4 pt-2"
+      className="fixed inset-x-0 top-0 z-50 mx-auto w-full max-w-md px-4 pt-[calc(0.5rem+var(--sa-top))]"
     >
       <div className="rounded-xl bg-amber-400 px-3 py-2 text-center text-xs font-medium text-amber-950 shadow-lg">
         ⏳ Acordando o servidor… pode levar até ~30s (plano gratuito)

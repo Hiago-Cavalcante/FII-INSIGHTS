@@ -27,6 +27,7 @@ import type { RankingItem } from "@/types/ranking";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/utils";
+import { compararClassificacao, mensagemRankingVazio } from "@/lib/ranking";
 import {
   Search,
   ChevronsUpDown,
@@ -51,14 +52,17 @@ const OPCOES_FILTRO: Array<{ valor: FiltroOpcao; rotulo: string }> = [
 ];
 
 function scoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-600 dark:text-emerald-400";
-  if (score >= 60) return "text-blue-600 dark:text-blue-400";
-  if (score >= 40) return "text-amber-600 dark:text-amber-400";
-  return "text-red-600 dark:text-red-400";
+  if (score >= 80) return "text-emerald-700 dark:text-emerald-400";
+  if (score >= 60) return "text-blue-700 dark:text-blue-400";
+  if (score >= 40) return "text-amber-700 dark:text-amber-400";
+  return "text-red-700 dark:text-red-400";
 }
 
+const fmtNum = (casas: number) =>
+  new Intl.NumberFormat("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+
 function fmt(v: number | null, suffix = "", decimals = 1): string {
-  return v !== null ? `${v.toFixed(decimals)}${suffix}` : "—";
+  return v !== null ? `${fmtNum(decimals).format(v)}${suffix}` : "—";
 }
 
 /**
@@ -94,7 +98,7 @@ function SortIcon({ direction }: { direction: "asc" | "desc" | false }) {
   if (direction === "desc")
     return <ChevronDown className="ml-1 inline h-3.5 w-3.5" />;
   return (
-    <ChevronsUpDown className="ml-1 inline h-3.5 w-3.5 text-gray-400 dark:text-gray-600" />
+    <ChevronsUpDown className="ml-1 inline h-3.5 w-3.5 text-muted-foreground/70" />
   );
 }
 
@@ -114,7 +118,7 @@ const columns = [
         aria-label={`Detalhes de ${row.original.ticker}`}
         aria-expanded={row.getIsExpanded()}
         onClick={row.getToggleExpandedHandler()}
-        className="flex items-center justify-center rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+        className="-my-2 -ml-1 flex h-11 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
       >
         <ChevronDown
           className={cn(
@@ -132,15 +136,11 @@ const columns = [
   columnHelper.display({
     id: "posicao",
     header: "#",
-    cell: ({ row, table }) => {
-      const sortedRows = table.getSortedRowModel().rows;
-      const pos = sortedRows.indexOf(row) + 1;
-      return (
-        <span className="text-xs text-gray-400 dark:text-gray-400 tabular-nums">
-          {pos}
-        </span>
-      );
-    },
+    cell: ({ row, table }) => (
+      <span data-testid="posicao" className="text-xs tabular-nums text-muted-foreground">
+        {table.options.meta?.posicoes?.get(row.original.ticker) ?? "—"}
+      </span>
+    ),
     enableSorting: false,
   }),
 
@@ -149,10 +149,10 @@ const columns = [
     header: "Ticker",
     cell: ({ row }) => (
       <div>
-        <p className="font-mono font-semibold text-sm text-gray-900 dark:text-gray-50">
+        <p className="font-mono font-semibold text-sm text-foreground">
           {row.original.ticker}
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-400 truncate max-w-[120px]">
+        <p className="max-w-[104px] truncate text-xs text-muted-foreground sm:max-w-[160px]">
           {row.original.nome}
         </p>
       </div>
@@ -170,7 +170,7 @@ const columns = [
   columnHelper.accessor("segmento", {
     header: "Segmento",
     cell: ({ getValue }) => (
-      <span className="text-sm text-gray-500 dark:text-gray-400">
+      <span className="text-sm text-muted-foreground">
         {getValue() ?? "—"}
       </span>
     ),
@@ -180,12 +180,15 @@ const columns = [
   // Score
   columnHelper.accessor("score", {
     header: "Score",
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const v = getValue();
       return (
-        <span data-tour="ranking-score" className={cn("font-bold tabular-nums text-sm", scoreColor(v))}>
-          {v.toFixed(1)}
-        </span>
+        <div className="flex flex-col items-start gap-1">
+          <span data-tour="ranking-score" className={cn("font-bold tabular-nums text-sm", scoreColor(v))}>
+            {fmt(v)}
+          </span>
+          <ClassificacaoBadge classificacao={row.original.classificacao} className="md:hidden" />
+        </div>
       );
     },
   }),
@@ -194,13 +197,16 @@ const columns = [
   columnHelper.accessor("classificacao", {
     header: "Classificação",
     cell: ({ getValue }) => <ClassificacaoBadge classificacao={getValue()} />,
+    sortingFn: (a, b, id) =>
+      compararClassificacao(a.getValue(id), b.getValue(id)),
+    meta: { hidden: "md" },
   }),
 
   // DY Atual
   columnHelper.accessor("dy_atual", {
     header: "DY Atual",
     cell: ({ getValue }) => (
-      <span className="text-sm tabular-nums text-gray-700 dark:text-gray-300">
+      <span className="text-sm tabular-nums text-foreground">
         {fmt(getValue(), "%")}
       </span>
     ),
@@ -211,7 +217,7 @@ const columns = [
   columnHelper.accessor("p_vp", {
     header: "P/VP",
     cell: ({ getValue }) => (
-      <span className="text-sm tabular-nums text-gray-700 dark:text-gray-300">
+      <span className="text-sm tabular-nums text-foreground">
         {fmt(getValue(), "", 2)}
       </span>
     ),
@@ -223,7 +229,7 @@ const columns = [
     id: "vacancia_fisica",
     header: "Vacância",
     cell: ({ getValue }) => (
-      <span className="text-sm tabular-nums text-gray-700 dark:text-gray-300">
+      <span className="text-sm tabular-nums text-foreground">
         {getValue() !== null ? fmt(getValue(), "%") : "—"}
       </span>
     ),
@@ -235,7 +241,7 @@ const columns = [
     id: "volatilidade_12m",
     header: "Volatilidade",
     cell: ({ getValue }) => (
-      <span className="text-sm tabular-nums text-gray-700 dark:text-gray-300">
+      <span className="text-sm tabular-nums text-foreground">
         {fmt(getValue(), "%")}
       </span>
     ),
@@ -249,7 +255,7 @@ const columns = [
 
 export function RankingPage() {
   useRegistrarTour("analise-ranking");
-  const { fundos, filtro, setFiltro, busca, setBusca, isLoading, isError } = useRanking();
+  const { fundos, posicoes, filtro, setFiltro, busca, setBusca, isLoading, isError } = useRanking();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "score", desc: true },
@@ -272,6 +278,7 @@ export function RankingPage() {
     data: fundos,
     columns: memoColumns,
     state: { sorting, pagination },
+    meta: { posicoes },
     onSortingChange: (updater) => {
       setSorting(updater);
       // Volta à primeira página ao reordenar
@@ -316,9 +323,10 @@ export function RankingPage() {
       {/* Busca e filtros */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
-            type="text"
+            type="search"
+            aria-label="Buscar fundo por ticker ou nome"
             value={busca}
             onChange={(e) => {
               setBusca(e.target.value);
@@ -326,23 +334,29 @@ export function RankingPage() {
             }}
             placeholder="Buscar ticker ou nome..."
             className={cn(
-              "w-full sm:w-64 rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors",
+              "min-h-11 w-full sm:w-64 rounded-lg border py-2 pl-9 pr-3 text-sm outline-none transition-colors",
               "bg-card border-border",
               "text-foreground placeholder:text-muted-foreground",
               "focus:border-primary focus:ring-1 focus:ring-ring"
             )}
           />
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div
+          role="group"
+          aria-label="Filtrar por classificação"
+          className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
+        >
           {OPCOES_FILTRO.map(({ valor, rotulo }) => (
             <button
               key={valor}
+              type="button"
+              aria-pressed={filtro === valor}
               onClick={() => {
                 setFiltro(valor as FiltroOpcao);
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }));
               }}
               className={cn(
-                "rounded-full px-3.5 py-1.5 text-sm font-medium transition-all",
+                "min-h-11 shrink-0 rounded-full px-4 text-sm font-medium transition-colors",
                 filtro === valor
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground border border-border hover:bg-muted"
@@ -361,7 +375,7 @@ export function RankingPage() {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="border-gray-200 dark:border-gray-800 hover:bg-transparent"
+                className="border-border hover:bg-transparent"
               >
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta;
@@ -369,29 +383,35 @@ export function RankingPage() {
                   const hidden = meta?.hidden;
                   const mobileOnly = meta?.mobileOnly;
 
+                  const sorted = header.column.getIsSorted();
+                  const conteudo = flexRender(header.column.columnDef.header, header.getContext());
+
                   return (
                     <TableHead
                       key={header.id}
+                      aria-sort={
+                        sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : undefined
+                      }
                       className={cn(
-                        "text-xs font-medium text-gray-500 dark:text-gray-400 select-none",
+                        "text-xs font-medium text-muted-foreground select-none",
                         align === "right" && "text-right",
                         hidden === "md" && "hidden md:table-cell",
                         hidden === "lg" && "hidden lg:table-cell",
                         hidden === "xl" && "hidden xl:table-cell",
-                        mobileOnly && "md:hidden",
-                        header.column.getCanSort() &&
-                          "cursor-pointer hover:text-gray-900 dark:hover:text-gray-100"
+                        mobileOnly && "md:hidden"
                       )}
-                      onClick={header.column.getToggleSortingHandler()}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {header.column.getCanSort() && (
-                        <SortIcon
-                          direction={header.column.getIsSorted()}
-                        />
+                      {header.column.getCanSort() ? (
+                        <button
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className="-mx-1 inline-flex min-h-11 items-center rounded px-1 hover:text-foreground"
+                        >
+                          {conteudo}
+                          <SortIcon direction={sorted} />
+                        </button>
+                      ) : (
+                        conteudo
                       )}
                     </TableHead>
                   );
@@ -404,16 +424,16 @@ export function RankingPage() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="text-center py-16 text-gray-400 dark:text-gray-400"
+                  className="py-16 text-center text-muted-foreground"
                 >
-                  Nenhum fundo encontrado para esta classificação.
+                  {mensagemRankingVazio(busca, filtro)}
                 </TableCell>
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => {
                 return (
                   <Fragment key={row.id}>
-                    <TableRow className="border-gray-100 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                    <TableRow className="border-border/60 transition-colors hover:bg-muted/40">
                       {row.getVisibleCells().map((cell) => {
                         const meta = cell.column.columnDef.meta;
                         const align = meta?.align;
@@ -442,7 +462,7 @@ export function RankingPage() {
 
                     {/* Painel de detalhe — só no mobile (no desktop as colunas já aparecem) */}
                     {row.getIsExpanded() && (
-                      <TableRow className="border-gray-100 dark:border-gray-800/60 hover:bg-transparent md:hidden">
+                      <TableRow className="border-border/60 hover:bg-transparent md:hidden">
                         <TableCell colSpan={row.getVisibleCells().length} className="bg-muted/30 p-0">
                           <dl
                             data-testid={`detalhe-${row.original.ticker}`}
@@ -473,21 +493,21 @@ export function RankingPage() {
 
       {/* Paginação */}
       {totalRows > 0 && (
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground">
           <p className="text-xs">
             Mostrando {firstRow}–{lastRow} de {totalRows} fundo
             {totalRows !== 1 ? "s" : ""}
           </p>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
               className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-                "border-gray-200 dark:border-gray-700",
+                "inline-flex min-h-11 items-center gap-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors",
                 table.getCanPreviousPage()
-                  ? "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                  : "bg-gray-50 dark:bg-gray-800/50 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                  ? "hover:bg-muted"
+                  : "cursor-not-allowed opacity-50"
               )}
             >
               <ChevronLeft className="h-3.5 w-3.5" />
@@ -499,14 +519,14 @@ export function RankingPage() {
             </span>
 
             <button
+              type="button"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
               className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-                "border-gray-200 dark:border-gray-700",
+                "inline-flex min-h-11 items-center gap-1 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors",
                 table.getCanNextPage()
-                  ? "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                  : "bg-gray-50 dark:bg-gray-800/50 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                  ? "hover:bg-muted"
+                  : "cursor-not-allowed opacity-50"
               )}
             >
               Próxima

@@ -24,9 +24,10 @@ const ITEM: RankingItem = {
   num_cotistas: 300,
 };
 
-function mockRanking(fundos: RankingItem[]) {
+function mockRanking(fundos: RankingItem[], posicoes = new Map<string, number>()) {
   vi.mocked(rankingHook.useRanking).mockReturnValue({
     fundos,
+    posicoes,
     isLoading: false,
     isError: false,
     filtro: "Todas",
@@ -63,5 +64,35 @@ describe("RankingPage — detalhe expansível no mobile", () => {
 
     expect(screen.getByTestId("detalhe-HGLG11")).toBeInTheDocument();
     expect(screen.queryByTestId("detalhe-BBBB11")).not.toBeInTheDocument();
+  });
+});
+
+describe("RankingPage — coluna de posição (#)", () => {
+  it("mostra a posição do fundo no ranking geral, não 0", () => {
+    mockRanking(
+      [ITEM, { ...ITEM, ticker: "BBBB11", nome: "Fundo B", score: 80 }],
+      new Map([
+        ["HGLG11", 1],
+        ["BBBB11", 7],
+      ])
+    );
+    render(<RankingPage />);
+    const posicoes = screen.getAllByTestId("posicao").map((el) => el.textContent);
+    expect(posicoes).toEqual(["1", "7"]);
+  });
+
+  it("estado vazio nomeia a busca digitada", () => {
+    vi.mocked(rankingHook.useRanking).mockReturnValue({
+      fundos: [],
+      posicoes: new Map(),
+      isLoading: false,
+      isError: false,
+      filtro: "Todas",
+      setFiltro: vi.fn(),
+      busca: "zzzz",
+      setBusca: vi.fn(),
+    });
+    render(<RankingPage />);
+    expect(screen.getByText("Nenhum fundo encontrado para “zzzz”.")).toBeInTheDocument();
   });
 });

@@ -1,3 +1,4 @@
+import { formatMoeda } from "@/lib/formato";
 import {
   AreaChart,
   Area,
@@ -41,7 +42,7 @@ export function ProjecaoRendaChart({ serie, rendaAlvo }: Props) {
           }}
           labelStyle={{ color: "var(--foreground)" }}
           itemStyle={{ color: "var(--foreground)" }}
-          formatter={(v: number | string | readonly (number | string)[]) => `R$ ${Number(v).toFixed(2)}/mês`}
+          formatter={(v: number | string | readonly (number | string)[]) => `${formatMoeda(Number(v))}/mês`}
           labelFormatter={(m: number) => `Mês ${m}`}
         />
         {rendaAlvo != null && rendaAlvo > 0 && (

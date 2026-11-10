@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getRecomendacoes } from "@/api/endpoints/recomendacoes";
 
 /** Recomendações da carteira (preço-teto + rebalanceamento) com parâmetros editáveis. */
@@ -11,6 +11,9 @@ export function useRecomendacoes() {
   const query = useQuery({
     queryKey: ["carteira", "recomendacoes", yieldFii, yieldFiagro, alvoFii],
     queryFn: () => getRecomendacoes({ yieldFii, yieldFiagro, alvoFii }),
+    // Cada tecla muda a chave da query; sem isso a view inteira volta a "Carregando…"
+    // e desmonta os campos, roubando o foco e o teclado no meio da digitação.
+    placeholderData: keepPreviousData,
   });
 
   return {

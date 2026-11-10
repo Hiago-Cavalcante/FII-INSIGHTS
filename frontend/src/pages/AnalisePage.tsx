@@ -32,7 +32,7 @@ export function AnalisePage() {
             aria-selected={sub === s}
             onClick={() => setSub(s)}
             className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-medium",
+              "min-h-11 rounded-full px-4 text-sm font-medium",
               sub === s
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground"
